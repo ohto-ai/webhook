@@ -3,6 +3,31 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
+
+std::string executeCommand(std::string cmd)
+{
+	std::string display{};
+	auto f = popen(cmd.c_str(), "r");
+	char buf_ps[1024];
+	if (f != nullptr)
+	{
+		while (fgets(buf_ps, 1024, f) != nullptr)
+			display += buf_ps;
+		pclose(f);
+	}
+	else
+	{
+		spdlog::error("Cannot open pip `{}`", cmd);
+	}
+	return display;
+}
+
+
 int main()
 {
 	spdlog::info("Application start.");
@@ -49,9 +74,9 @@ int main()
 		auto handler = [=, &server](const httplib::Request& req, httplib::Response& res)
 		{
 			spdlog::info("Hook `{}`", name);
-			auto ret = system(command.c_str());
-			spdlog::info("Run command `{}` return {}", command, ret);
-			res.set_content("ok", "text/plain");
+			auto ret = executeCommand(command);
+			spdlog::info("Run command `{}`\n{}", command, ret);
+			res.set_content(ret, "text/plain");
 		};
 		if (method == "GET")
 		{
