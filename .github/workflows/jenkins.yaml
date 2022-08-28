@@ -23,5 +23,6 @@ jobs:
     - name: Build on jenkins
       env:
         job_name: TestJob
+        jenkins_url: http://ohtoai.top:8100/jenkins
       run: |
-        java -jar jenkins-cli.jar -s https://ohtoai.top/jenkins/ -webSocket build ${{env.job_name}}
+        java -jar jenkins-cli.jar -s ${{env.jenkins_url}} -webSocket build ${{env.job_name}}
