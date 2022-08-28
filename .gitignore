@@ -400,3 +400,4 @@ FodyWeavers.xsd
 # makefile
 *.d
 pull-hook
+hook.json
