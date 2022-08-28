@@ -1,0 +1,27 @@
+name: Jenkins CI
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Download jenkins-cli.jar
+      env:
+        jenkins_cli_path: https://ohtoai.top/jenkins/jnlpJars/jenkins-cli.jar
+      run: |
+        wget ${{env.jenkins_cli_path}}
+
+    - name: Build on jenkins
+      env:
+        job_name: TestJob
+      run: |
+        java -jar jenkins-cli.jar -s https://ohtoai.top/jenkins/ -webSocket build ${{env.job_name}}
