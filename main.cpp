@@ -51,6 +51,7 @@ int main()
 			spdlog::info("Hook `{}`", name);
 			auto ret = system(command.c_str());
 			spdlog::info("Run command `{}` return {}", command, ret);
+			res.set_content("ok", "text/plain");
 		};
 		if (method == "GET")
 		{
