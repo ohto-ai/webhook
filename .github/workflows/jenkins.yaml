@@ -1,4 +1,4 @@
-name: Jenkins CI
+name: Jenkins Build
 
 on:
   push:
@@ -18,6 +18,6 @@ jobs:
       env:
         job_name: TestJob
         jenkins_url: https://ohtoai.top/jenkins
-        token: ${secrets.JENKINS_TOKEN}}
+        token: ${{secrets.JENKINS_TOKEN}}
       run: |
         GET ${{env.jenkins_url}}/job/${{env.job_name}}/build?token=${{env.token}}
