@@ -14,15 +14,10 @@ jobs:
     name: Build
     runs-on: ubuntu-20.04
     steps:
-    - name: Download jenkins-cli.jar
-      env:
-        jenkins_cli_path: https://ohtoai.top/jenkins/jnlpJars/jenkins-cli.jar
-      run: |
-        wget ${{env.jenkins_cli_path}}
-
-    - name: Build on jenkins
+    - name: Post build to jenkins
       env:
         job_name: TestJob
-        jenkins_url: http://ohtoai.top:8100/jenkins
+        jenkins_url: https://ohtoai.top/jenkins
+        token: ${secrets.JENKINS_TOKEN}}
       run: |
-        java -jar jenkins-cli.jar -s ${{env.jenkins_url}} -webSocket build ${{env.job_name}}
+        GET ${{env.jenkins_url}}/job/${{env.job_name}}/build?token=${{env.token}}
