@@ -1,7 +1,7 @@
 # web hook
 
 |[![License][license:badge]](/LICENSE)|[![Issues][issues:badge]][issues]|
-| ------ | ------------------------------------------------ |
+|:------|------------------------------------------------:|
 |[![Stargazers][stargazers:badge]][stargazers]|[![Pulls][pulls:badge]][pulls]|
 |[![Contributors][contributors:badge]][contributors]|[![Commit Activity][commit-activity:badge]][commit-activity]|
 
