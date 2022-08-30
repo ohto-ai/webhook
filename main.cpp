@@ -37,7 +37,7 @@ int main()
 		spdlog::error("Failed to open hook.json");
 		return -1;
 	}
-	
+
 	nlohmann::json j;
 	try {
 		ifs >> j;
@@ -47,11 +47,11 @@ int main()
 		spdlog::error("{}", e.what());
 		return -1;
 	}
-	
+
 	ifs.close();
 
 	httplib::Server server;
-	
+
 	server.bind_to_port(j["server"]["host"].get<std::string>().c_str(), j["server"]["port"]);
 
 	server.set_pre_routing_handler([&server](const httplib::Request& req, httplib::Response& res)
@@ -60,7 +60,7 @@ int main()
 			return httplib::Server::HandlerResponse::Unhandled;
 		});
 
-	
+
 	for (auto hook : j["hook"])
 	{
 		std::string name = hook["name"];
@@ -70,7 +70,7 @@ int main()
 		std::string result_from = hook["result"]["from"];
 		std::string result_type = hook["result"]["type"];
 		std::string result_value{};
-		
+
 		if (hook.contains("command"))
 		{
 			command = hook["command"];
@@ -82,16 +82,16 @@ int main()
 
 		if(result_type.empty())
 			result_type = "text/plain";
-		
+
 		std::transform(method.begin(), method.end(), method.begin(), [](char ch) ->char { return std::toupper(ch); });
 
 		spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
-		
+
 		auto handler = [=, &server](const httplib::Request& req, httplib::Response& res)
 		{
 			spdlog::info("Hook `{}`", name);
 			std::string command_result{};
-			
+
 			if (command.empty())
 			{
 				spdlog::info("No command given");
@@ -101,7 +101,7 @@ int main()
 				command_result = executeCommand(command);
 				spdlog::info("Run command `{}`\n{}", command, command_result);
 			}
-	
+
 			if (result_from == "command")
 			{
 				res.set_content(command_result, result_type.c_str());
@@ -115,7 +115,7 @@ int main()
 			else
 			{
 				spdlog::error("Unknown result_from `{}`", result_from);
-			}			
+			}
 		};
 		if (method == "GET")
 		{
@@ -146,6 +146,6 @@ int main()
 			spdlog::error("Illegal method: {}", method);
 		}
 	}
-	
+
 	return server.listen_after_bind();
 }
