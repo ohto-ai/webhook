@@ -69,7 +69,7 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 }
 ```
 
-[last-modify:badge]: https://img.shields.io/badge/last_modify-2022--08--30_23:25:22-orange.svg?style=for-the-badge
+[last-modify:badge]: https://img.shields.io/badge/last_modify-2022--08--30_23:45:53-orange.svg?style=for-the-badge
 
 [license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=for-the-badge
 
