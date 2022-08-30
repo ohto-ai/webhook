@@ -69,21 +69,21 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 }
 ```
 
-[last-modify:badge]: https://img.shields.io/badge/last_modify-2022--08--30_23:45:53-orange.svg?style=for-the-badge
+[last-modify:badge]: https://img.shields.io/badge/last_modify-2022--08--30_23:45:53-orange.svg?style=flat-square
 
-[license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=for-the-badge
+[license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=flat-square
 
-[issues:badge]: https://img.shields.io/github/issues/Ohto-Ai/webhook?logo=github&style=for-the-badge
+[issues:badge]: https://img.shields.io/github/issues/Ohto-Ai/webhook?logo=github&style=flat-square
 [issues]: https://github.com/Ohto-Ai/webhook/issues
 
-[stargazers:badge]: https://img.shields.io/github/stars/Ohto-Ai/webhook?logo=github&style=for-the-badge
+[stargazers:badge]: https://img.shields.io/github/stars/Ohto-Ai/webhook?logo=github&style=flat-square
 [stargazers]: https://github.com/Ohto-Ai/webhook/stargazers
 
-[pulls:badge]: https://img.shields.io/github/issues-pr/Ohto-Ai/webhook?logo=github&color=0088ff&style=for-the-badge
+[pulls:badge]: https://img.shields.io/github/issues-pr/Ohto-Ai/webhook?logo=github&color=0088ff&style=flat-square
 [pulls]: https://github.com/Ohto-Ai/webhook/pulls
 
-[commit-activity:badge]: https://img.shields.io/github/commit-activity/m/Ohto-Ai/webhook?logo=github&style=for-the-badge
+[commit-activity:badge]: https://img.shields.io/github/commit-activity/m/Ohto-Ai/webhook?logo=github&style=flat-square
 [commit-activity]: https://github.com/Ohto-Ai/webhook/pulse
 
-[contributors:badge]: https://img.shields.io/github/contributors/Ohto-Ai/webhook?logo=github&style=for-the-badge
+[contributors:badge]: https://img.shields.io/github/contributors/Ohto-Ai/webhook?logo=github&style=flat-square
 [contributors]: https://github.com/Ohto-Ai/webhook/contributors
