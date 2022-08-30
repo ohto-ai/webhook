@@ -25,20 +25,3 @@ jobs:
         token: ${{secrets.JENKINS_TOKEN}}
       run: |
         GET ${{env.jenkins_url}}/job/${{env.job_name}}/build?token=${{env.token}}
-        - name: Send email
-    - name: Send mail
-      uses: devellany/send-mailer@v1.0.2
-      with:
-        host: smtp.office365.com
-        port: 587
-        account: ${{secrets.MAIL_ACCOUNT}}
-        password: ${{secrets.MAIL_PASSWORD}}
-        sender: Ohto-Ai
-        from: ${{secrets.MAIL_ADDRESS}}
-        to: ohtoai.choo@gmail.com
-        subject: Test mail.
-        body: Test messages.
-        # Optional content type (defaults to text/plain)
-        contentType: text/plain
-        # Optional attachment files (JSON type. require property 'path')
-        attachments: '[{"path":"README.md"}]'
