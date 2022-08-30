@@ -20,7 +20,7 @@ jobs:
         sudo apt install libwww-perl -y
     - name: Post build to jenkins
       env:
-        job_name: TestJob
+        job_name: ${{secrets.JENKINS_JOB}}
         jenkins_url: https://ohtoai.top/jenkins
         token: ${{secrets.JENKINS_TOKEN}}
       run: |
