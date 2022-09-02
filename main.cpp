@@ -50,14 +50,11 @@ namespace ohtoai
 				return tokens;
 			}
 
-			std::string& trim(std::string& s)
+			std::string trimmed(const std::string& s)
 			{
 				if (s.empty())
 					return s;
-
-				s.erase(0, s.find_first_not_of(" "));
-				s.erase(s.find_last_not_of(" ") + 1);
-				return s;
+				return s.substr(s.find_first_not_of(" "), s.find_last_not_of(" ") + 1);
 			}
 		}
 	}
@@ -112,12 +109,14 @@ int main()
 						res.status = 401;
 						return httplib::Server::HandlerResponse::Handled;
 					}
-					auto basic_auth_base64 = ohtoai::tool::string::split(req.get_header_value("Authorization"), " ").back();
-					auto basic_auth = brynet::base::crypto::base64_decode(basic_auth_base64);
-					auto auth = ohtoai::tool::string::split(basic_auth, ":");
+					auto basic_auth_base64 = ohtoai::tool::string::split(
+						ohtoai::tool::string::trimmed(req.get_header_value("Authorization")), " ").back();
+					auto auth = ohtoai::tool::string::split(brynet::base::crypto::base64_decode(basic_auth_base64), ":");
+					
+					std::transform(auth.begin(), auth.end(), auth.begin(), ohtoai::tool::string::trimmed);
 					if (auth.size() != 2)
 					{
-						spdlog::error("Error base64: {}", basic_auth);
+						spdlog::error("Error base64: {}", basic_auth_base64);
 						res.set_header("WWW-Authenticate", R"(Basic realm="Secure Area")");
 						res.status = 401;
 						return httplib::Server::HandlerResponse::Handled;
@@ -160,7 +159,7 @@ int main()
 		if(result_type.empty())
 			result_type = "text/plain";
 
-		std::transform(method.begin(), method.end(), method.begin(), [](char ch) ->char { return std::toupper(ch); });
+		std::transform(method.begin(), method.end(), method.begin(), std::toupper);
 
 		spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
