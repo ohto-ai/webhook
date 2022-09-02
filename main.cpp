@@ -150,7 +150,7 @@ int main()
 	{
 		std::string name = hook["name"];
 		std::string method = hook["method"];
-		std::string path = prefix + hook["path"].get<std::string>();
+		std::string path = pathPrefix + hook["path"].get<std::string>();
 		std::string command{};
 		std::string result_from = hook["result"]["from"];
 		std::string result_type = hook["result"]["type"];
