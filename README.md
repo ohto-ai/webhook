@@ -15,7 +15,8 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 > hook.json
 ```cpp
 {
-    "server":{
+    "listen":{
+        "prefix": "/webhook",
         "host":"localhost",
         "port":8003
     },

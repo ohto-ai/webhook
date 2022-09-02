@@ -91,12 +91,21 @@ int main()
 
 	UserLogin globalUserLogin{ j["auth"]["username"], j["auth"]["password"] };
 	bool isAuthEnabled = j["auth"]["enabled"];
+	std::string pathPrefix {};
+	if(j["listen"].contains("prefix"))
+		pathPrefix = j["listem"]["prefix"];
 	
 
-	server.bind_to_port(j["server"]["host"].get<std::string>().c_str(), j["server"]["port"]);
+	server.bind_to_port(j["listen"]["host"].get<std::string>().c_str(), j["listen"]["port"]);
 
 	server.set_pre_routing_handler([&server, &globalUserLogin, &isAuthEnabled](const httplib::Request& req, httplib::Response& res)
 		{
+			if(!req.path.start_with(pathPrefix))
+			{
+				spdlog::warning("Refuse to path {}", req.path);
+				return httplib::Server::HandlerResponse::Unhandled;
+			}
+
 			spdlog::info("Routing {} {} \nReceive {} bytes\n{}", req.method, req.path, req.body.size(), req.body);
 
 			if (isAuthEnabled)
@@ -141,7 +150,7 @@ int main()
 	{
 		std::string name = hook["name"];
 		std::string method = hook["method"];
-		std::string path = hook["path"];
+		std::string path = prefix + hook["path"].get<std::string>();
 		std::string command{};
 		std::string result_from = hook["result"]["from"];
 		std::string result_type = hook["result"]["type"];
