@@ -124,7 +124,7 @@ int main()
 				{
 					if (!req.has_header("Authorization") || req.get_header_value("Authorization").empty())
 					{
-						res.set_header("WWW-Authenticate", R"(Basic realm="Secure Area")");
+						res.set_header("WWW-Authenticate", "Basic");
 						res.status = 401;
 						return httplib::Server::HandlerResponse::Handled;
 					}
@@ -136,14 +136,14 @@ int main()
 					if (auth.size() != 2)
 					{
 						spdlog::error("Error base64: {}", basic_auth_base64);
-						res.set_header("WWW-Authenticate", R"(Basic realm="Secure Area")");
+						res.set_header("WWW-Authenticate", "Basic");
 						res.status = 401;
 						return httplib::Server::HandlerResponse::Handled;
 					}
 
 					if (auth[0] != globalUserLogin.username || auth[1] != globalUserLogin.password)
 					{
-						res.set_header("WWW-Authenticate", R"(Basic realm="Secure Area")");
+						res.set_header("WWW-Authenticate", "Basic");
 						res.status = 401;
 						return httplib::Server::HandlerResponse::Handled;
 					}
