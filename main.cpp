@@ -102,7 +102,7 @@ int main()
 		{
 			if(!req.path.start_with(pathPrefix))
 			{
-				spdlog::warning("Refuse to path {}", req.path);
+				spdlog::warn("Refuse to path {}", req.path);
 				return httplib::Server::HandlerResponse::Unhandled;
 			}
 
