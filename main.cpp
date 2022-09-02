@@ -56,6 +56,16 @@ namespace ohtoai
 					return s;
 				return s.substr(s.find_first_not_of(" "), s.find_last_not_of(" ") + 1);
 			}
+
+			bool start_with(const std::string& s1, const std::string& s2)
+			{
+				return s1.compare(0, s2.size(), s2) == 0;
+			}
+
+			bool end_with(const std::string& s1, const std::string& s2)
+			{
+				return s1.compare(s1.size() - s2.size(), s2.size(), s2) == 0;
+			}
 		}
 	}
 }
@@ -98,9 +108,9 @@ int main()
 
 	server.bind_to_port(j["listen"]["host"].get<std::string>().c_str(), j["listen"]["port"]);
 
-	server.set_pre_routing_handler([&server, &globalUserLogin, &isAuthEnabled](const httplib::Request& req, httplib::Response& res)
+	server.set_pre_routing_handler([&server, &globalUserLogin, isAuthEnabled, pathPrefix](const httplib::Request& req, httplib::Response& res)
 		{
-			if(!req.path.start_with(pathPrefix))
+			if(!ohtoai::tool::string::start_with(req.path, pathPrefix))
 			{
 				spdlog::warn("Refuse to path {}", req.path);
 				return httplib::Server::HandlerResponse::Unhandled;
