@@ -159,7 +159,7 @@ int main()
 		if(result_type.empty())
 			result_type = "text/plain";
 
-		std::transform(method.begin(), method.end(), method.begin(), std::toupper);
+		std::transform(method.begin(), method.end(), method.begin(), [](char ch) ->char { return std::toupper(ch); });
 
 		spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
