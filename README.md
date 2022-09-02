@@ -20,6 +20,12 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
         "host":"localhost",
         "port":8003
     },
+    "log": {
+        "console_level": "info",
+        "file_level": "info",
+        "file_path": "hook.log",
+        "global_level": "info"
+    },
     "auth": {
         "username": "admin",
         "password": "password"

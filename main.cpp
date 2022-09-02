@@ -1,6 +1,8 @@
 #include <cpp-httplib/httplib.h>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include <fstream>
 #include <algorithm>
 #include <iterator>
@@ -77,17 +79,19 @@ struct UserLogin {
 
 int main()
 {
-	spdlog::info("Application start.");
+	constexpr auto configPath{"hook.json"};
 
-	std::ifstream ifs("hook.json");
+	spdlog::info("Application start.");
+	spdlog::info("Load config {}", configPath);
+	std::ifstream ifs(configPath);
 	if (!ifs) {
 		spdlog::error("Failed to open hook.json");
 		return -1;
 	}
 
-	nlohmann::json j;
+	nlohmann::json configJ;
 	try {
-		ifs >> j;
+		ifs >> configJ;
 	}
 	catch (nlohmann::detail::exception e)
 	{
@@ -97,16 +101,39 @@ int main()
 
 	ifs.close();
 
+	std::string log_console_level = configJ["log"]["console_level"];
+	std::string log_file_level = configJ["log"]["file_level"];
+	std::string log_file_path = configJ["log"]["file_path"];
+	std::string log_global_level = configJ["log"]["global_level"];
+
+	try
+	{
+		auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+		console_sink->set_level(spdlog::level::from_str(log_console_level));
+
+		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("hook.log", true);
+		file_sink->set_level(spdlog::level::from_str(log_file_level));
+		
+		spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({ console_sink, file_sink })));
+		spdlog::set_level(spdlog::level::from_str(log_global_level));
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		std::cout << "Log initialization failed: " << ex.what() << std::endl;
+	}
+	
+	spdlog::info("Config loaded.");
+	
 	httplib::Server server;
 
-	UserLogin globalUserLogin{ j["auth"]["username"], j["auth"]["password"] };
-	bool isAuthEnabled = j["auth"]["enabled"];
+	UserLogin globalUserLogin{ configJ["auth"]["username"], configJ["auth"]["password"] };
+	bool isAuthEnabled = configJ["auth"]["enabled"];
 	std::string pathPrefix {};
-	if(j["listen"].contains("prefix"))
-		pathPrefix = j["listem"]["prefix"];
+	if(configJ["listen"].contains("prefix"))
+		pathPrefix = configJ["listem"]["prefix"];
 	
 
-	server.bind_to_port(j["listen"]["host"].get<std::string>().c_str(), j["listen"]["port"]);
+	server.bind_to_port(configJ["listen"]["host"].get<std::string>().c_str(), configJ["listen"]["port"]);
 
 	server.set_pre_routing_handler([&server, &globalUserLogin, isAuthEnabled, pathPrefix](const httplib::Request& req, httplib::Response& res)
 		{
@@ -156,7 +183,7 @@ int main()
 		});
 
 
-	for (auto hook : j["hook"])
+	for (auto hook : configJ["hook"])
 	{
 		std::string name = hook["name"];
 		std::string method = hook["method"];
