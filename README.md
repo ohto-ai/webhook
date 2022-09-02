@@ -19,6 +19,10 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
         "host":"localhost",
         "port":8003
     },
+    "auth": {
+        "username": "admin",
+        "password": "password"
+    },
     "hook": [
         {
             "name": "pull-repo",
