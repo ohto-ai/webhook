@@ -7,6 +7,8 @@
 
 ![Last Modify][last-modify:badge]
 
+![Alt](https://repobeats.axiom.co/api/embed/f81550002329b0c0414378aebb0dbac1d17d1013.svg "Repobeats analytics image")
+
 ## Introduction
 
 This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook that can be used to execute commands / show pages on the server.
