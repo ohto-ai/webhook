@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iterator>
 #include <brynet/base/crypto/Base64.hpp>
+#include "ohtoai/string_tools.hpp"
 
 #ifdef _WIN32
 #define popen _popen
@@ -30,46 +31,6 @@ std::string executeCommand(std::string cmd)
 		spdlog::error("Cannot open pip `{}`", cmd);
 	}
 	return display;
-}
-
-namespace ohtoai
-{
-	namespace tool
-	{
-		namespace string
-		{
-			std::vector<std::string> split(const std::string& s, const std::string& delimiters)
-			{
-				std::vector<std::string> tokens;
-				std::string::size_type lastPos = s.find_last_not_of(delimiters, 0);
-				std::string::size_type pos = s.find_first_of(delimiters, lastPos);
-				while (std::string::npos != pos || std::string::npos != lastPos)
-				{
-					tokens.push_back(s.substr(lastPos, pos - lastPos));
-					lastPos = s.find_first_not_of(delimiters, pos);
-					pos = s.find_first_of(delimiters, lastPos);
-				}
-				return tokens;
-			}
-
-			std::string trimmed(const std::string& s)
-			{
-				if (s.empty())
-					return s;
-				return s.substr(s.find_first_not_of(" "), s.find_last_not_of(" ") + 1);
-			}
-
-			bool start_with(const std::string& s1, const std::string& s2)
-			{
-				return s1.compare(0, s2.size(), s2) == 0;
-			}
-
-			bool end_with(const std::string& s1, const std::string& s2)
-			{
-				return s1.compare(s1.size() - s2.size(), s2.size(), s2) == 0;
-			}
-		}
-	}
 }
 
 struct UserLogin {

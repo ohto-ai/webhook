@@ -22,4 +22,9 @@
   <ItemGroup>
     <None Include="hook.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ohtoai\string_tools.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
