@@ -18,6 +18,13 @@ jobs:
           time_zone_diff=8
           last_modify_time_badge_content=`date -d "$time_zone_diff hours" +"%Y--%m--%d_%H:%M:%S"`
           sed -i -r "s#last_modify-[0-9]{4}--[0-9]{1,2}--[0-9]{1,2}_([0-9]{2}:){2}[0-9]{2}#last_modify-${last_modify_time_badge_content}#g" README.md
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v5 
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          # passphrase: ${{ secrets.PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Push to GitHub
         uses: EndBug/add-and-commit@v7.2.1
         with:
