@@ -30,4 +30,5 @@ jobs:
         with:
           branch: master
           default_author: user_info
+          committer_email: zhu.thatboy@outlook.com
           message: "Update Readme"
