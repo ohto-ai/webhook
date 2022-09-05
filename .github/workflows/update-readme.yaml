@@ -30,5 +30,6 @@ jobs:
         with:
           branch: master
           default_author: user_info
+          author_name: Ohto-Ai
           author_email: zhu.thatboy@outlook.com
           message: "Update Readme"
