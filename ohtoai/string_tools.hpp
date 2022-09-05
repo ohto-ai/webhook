@@ -4,8 +4,6 @@
 #include <cctype>
 #include <locale>
 
-
-
 namespace ohtoai
 {
 	namespace tool
@@ -26,14 +24,12 @@ namespace ohtoai
 				return tokens;
 			}
 
-			// trim from start(in place)
 			std::string ltrimmed(const std::string& s) {
 				return { std::find_if(s.begin(), s.end(), [](int ch) {
 					return !std::isspace(ch);
 					}) , s.end() };
 			}
 
-			// trim from end(in place)
 			std::string rtrimmed(const std::string& s) {
 				return { s.begin(), std::find_if(s.rbegin(), s.rend(), [](int ch) {
 					return !std::isspace(ch);
@@ -53,6 +49,37 @@ namespace ohtoai
 			bool end_with(const std::string& s1, const std::string& s2)
 			{
 				return s1.size() >= s2.size() && s1.compare(s1.size() - s2.size(), s2.size(), s2) == 0;
+			}
+
+			std::string& to_lower(std::string& s)
+			{
+				std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::tolower(ch); });
+				return s;
+			}
+
+			std::string& to_upper(std::string& s)
+			{
+				std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::toupper(ch); });
+				return s;
+			}
+
+			std::string lowered(const std::string& s)
+			{
+				std::string result{ s };
+				std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) { return std::tolower(ch); });
+				return result;
+			}
+
+			std::string uppered(const std::string& s)
+			{
+				std::string result{ s };
+				std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) { return std::toupper(ch); });
+				return result;
+			}
+
+			bool contains(const std::string& s1, const std::string& s2)
+			{
+				return s1.find(s2) != std::string::npos;
 			}
 		}
 	}

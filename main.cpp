@@ -14,7 +14,6 @@
 #define pclose _pclose
 #endif
 
-
 std::string executeCommand(std::string cmd)
 {
 	std::string display{};
@@ -40,7 +39,7 @@ struct UserLogin {
 
 int main()
 {
-	constexpr auto configPath{"hook.json"};
+	constexpr auto configPath{ "hook.json" };
 
 	spdlog::info("Application start.");
 	spdlog::info("Load config {}", configPath);
@@ -74,7 +73,7 @@ int main()
 
 		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("hook.log", true);
 		file_sink->set_level(spdlog::level::from_str(log_file_level));
-		
+
 		spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({ console_sink, file_sink })));
 		spdlog::set_level(spdlog::level::from_str(log_global_level));
 	}
@@ -82,23 +81,22 @@ int main()
 	{
 		std::cout << "Log initialization failed: " << ex.what() << std::endl;
 	}
-	
+
 	spdlog::info("Config loaded.");
-	
+
 	httplib::Server server;
 
 	UserLogin globalUserLogin{ configJ["auth"]["username"], configJ["auth"]["password"] };
 	bool isAuthEnabled = configJ["auth"]["enabled"];
-	std::string pathPrefix {};
-	if(configJ["listen"].contains("prefix"))
+	std::string pathPrefix{};
+	if (configJ["listen"].contains("prefix"))
 		pathPrefix = configJ["listem"]["prefix"];
-	
 
 	server.bind_to_port(configJ["listen"]["host"].get<std::string>().c_str(), configJ["listen"]["port"]);
 
 	server.set_pre_routing_handler([&server, &globalUserLogin, isAuthEnabled, pathPrefix](const httplib::Request& req, httplib::Response& res)
 		{
-			if(!ohtoai::tool::string::start_with(req.path, pathPrefix))
+			if (!ohtoai::tool::string::start_with(req.path, pathPrefix))
 			{
 				spdlog::warn("Refuse to path {}", req.path);
 				return httplib::Server::HandlerResponse::Unhandled;
@@ -119,7 +117,7 @@ int main()
 					auto basic_auth_base64 = ohtoai::tool::string::split(
 						ohtoai::tool::string::trimmed(req.get_header_value("Authorization")), " ").back();
 					auto auth = ohtoai::tool::string::split(brynet::base::crypto::base64_decode(basic_auth_base64), ":");
-					
+
 					std::transform(auth.begin(), auth.end(), auth.begin(), ohtoai::tool::string::trimmed);
 					if (auth.size() != 2)
 					{
@@ -139,10 +137,9 @@ int main()
 					spdlog::info("Auth {}", auth[0]);
 				}
 			}
-			
+
 			return httplib::Server::HandlerResponse::Unhandled;
 		});
-
 
 	for (auto hook : configJ["hook"])
 	{
@@ -163,10 +160,10 @@ int main()
 			result_value = hook["result"]["value"];
 		}
 
-		if(result_type.empty())
+		if (result_type.empty())
 			result_type = "text/plain";
 
-		std::transform(method.begin(), method.end(), method.begin(), [](char ch) ->char { return std::toupper(ch); });
+		ohtoai::tool::string::to_upper(method);
 
 		spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
