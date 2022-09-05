@@ -51,26 +51,26 @@ namespace ohtoai
 				return s1.size() >= s2.size() && s1.compare(s1.size() - s2.size(), s2.size(), s2) == 0;
 			}
 
-			std::string& to_lower(std::string& s)
+			std::string& transform_to_lower(std::string& s)
 			{
 				std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::tolower(ch); });
 				return s;
 			}
 
-			std::string& to_upper(std::string& s)
+			std::string& transform_to_upper(std::string& s)
 			{
 				std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return std::toupper(ch); });
 				return s;
 			}
-
-			std::string lowered(const std::string& s)
+			
+			std::string to_lower(const std::string& s)
 			{
 				std::string result{ s };
 				std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) { return std::tolower(ch); });
 				return result;
 			}
 
-			std::string uppered(const std::string& s)
+			std::string to_upper(const std::string& s)
 			{
 				std::string result{ s };
 				std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) { return std::toupper(ch); });

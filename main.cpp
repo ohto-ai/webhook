@@ -163,7 +163,7 @@ int main()
 		if (result_type.empty())
 			result_type = "text/plain";
 
-		ohtoai::tool::string::to_upper(method);
+		ohtoai::tool::string::transform_to_upper(method);
 
 		spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 

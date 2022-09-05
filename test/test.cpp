@@ -49,16 +49,16 @@ TEST(OhtoAi_StringTool, TestEndWith) {
 }
 
 TEST(OhtoAi_StringTool, TestUpperLower) {
-	using ohtoai::tool::string::lowered;
-	using ohtoai::tool::string::uppered;
 	using ohtoai::tool::string::to_lower;
 	using ohtoai::tool::string::to_upper;
-	EXPECT_EQ(uppered("a B \n\tc"), "A B \n\tC");
-	EXPECT_EQ(lowered("a B \n\tc"), "a b \n\tc");
+	using ohtoai::tool::string::transform_to_lower;
+	using ohtoai::tool::string::transform_to_upper;
+	EXPECT_EQ(to_upper("a B \n\tc"), "A B \n\tC");
+	EXPECT_EQ(to_lower("a B \n\tc"), "a b \n\tc");
 	std::string a = "a B \n\tc";
 	std::string b = "a B \n\tc";
-	to_upper(a);
-	to_lower(b);
+	transform_to_upper(a);
+	transform_to_lower(b);
 	EXPECT_EQ(a, "A B \n\tC");
 	EXPECT_EQ(b, "a b \n\tc");
 }
