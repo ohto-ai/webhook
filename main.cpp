@@ -71,7 +71,7 @@ int main()
 		auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 		console_sink->set_level(spdlog::level::from_str(log_console_level));
 
-		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("hook.log", true);
+		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file_path, true);
 		file_sink->set_level(spdlog::level::from_str(log_file_level));
 
 		spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({ console_sink, file_sink })));
