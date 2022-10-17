@@ -20,7 +20,7 @@ std::string executeCommand(std::string cmd)
     if (f != nullptr)
     {
         char buf_ps[1024];
-        while (fgets(buf_ps, 1024, f) != nullptr)
+        while (fgets(buf_ps, sizeof(buf_ps), f) != nullptr)
             display += buf_ps;
         pclose(f);
     }
