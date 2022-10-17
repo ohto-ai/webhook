@@ -9,18 +9,17 @@
 #include <brynet/base/crypto/Base64.hpp>
 #include "ohtoai/string_tools.hpp"
 
-#ifdef _WIN32
-#define popen _popen
-#define pclose _pclose
-#endif
-
 std::string executeCommand(std::string cmd)
 {
-	std::string display{};
+#	ifdef _WIN32
+#	define popen _popen
+#	define pclose _pclose
+#	endif
 	auto f = popen(cmd.c_str(), "r");
-	char buf_ps[1024];
+	std::string display{};
 	if (f != nullptr)
 	{
+		char buf_ps[1024];
 		while (fgets(buf_ps, 1024, f) != nullptr)
 			display += buf_ps;
 		pclose(f);
@@ -30,6 +29,11 @@ std::string executeCommand(std::string cmd)
 		spdlog::error("Cannot open pip `{}`", cmd);
 	}
 	return display;
+
+#	ifdef _WIN32
+#	undef popen
+#	undef pclose
+#	endif
 }
 
 struct UserLogin {
