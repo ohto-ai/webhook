@@ -164,8 +164,7 @@ int main()
             result_value = hook["result"]["value"];
         }
 
-        
-         (result_type.empty())
+        if (result_type.empty())
             result_type = "text/plain";
 
         ohtoai::tool::string::transform_to_upper(method);
