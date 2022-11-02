@@ -94,7 +94,7 @@ int main()
     bool isAuthEnabled = configJ["auth"]["enabled"];
     std::string pathPrefix{};
     if (configJ["listen"].contains("prefix"))
-        pathPrefix = configJ["listem"]["prefix"];
+        pathPrefix = configJ["listen"]["prefix"];
 
     server.bind_to_port(configJ["listen"]["host"].get<std::string>().c_str(), configJ["listen"]["port"]);
 
@@ -164,7 +164,8 @@ int main()
             result_value = hook["result"]["value"];
         }
 
-        if (result_type.empty())
+        
+         (result_type.empty())
             result_type = "text/plain";
 
         ohtoai::tool::string::transform_to_upper(method);
