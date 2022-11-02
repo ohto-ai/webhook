@@ -29,6 +29,7 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
         "global_level": "info"
     },
     "auth": {
+        "enabled": true,
         "username": "admin",
         "password": "password"
     },
