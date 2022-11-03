@@ -232,6 +232,7 @@ int main()
             {
                 spdlog::error("Unknown result_from `{}`", result_from);
             }
+            spdlog::info("\n==================================================");
         };
         if (method == "GET")
         {
@@ -261,9 +262,9 @@ int main()
         {
             spdlog::error("Illegal method: {}", method);
         }
-
-        spdlog::info("\n========================================");
     }
+    spdlog::info("\n==================================================");
+    spdlog::info("Server listen {}:{}.", configJ["listen"]["host"].get<std::string>(), configJ["listen"]["port"].get<int>());
 
     return server.listen_after_bind();
 }
