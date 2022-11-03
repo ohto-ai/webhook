@@ -5,8 +5,6 @@
 |[![Stargazers][stargazers:badge]][stargazers]|[![Pulls][pulls:badge]][pulls]|
 |[![Contributors][contributors:badge]][contributors]|[![Commit Activity][commit-activity:badge]][commit-activity]|
 
-![Last Modify][last-modify:badge]
-
 ![Alt](https://repobeats.axiom.co/api/embed/f81550002329b0c0414378aebb0dbac1d17d1013.svg "Repobeats analytics image")
 
 ## Introduction
@@ -90,9 +88,6 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
  - [optional] Support redirect/proxy
  - [optional] Support response op
  - [optional] Support conditional-op
-
-
-[last-modify:badge]: https://img.shields.io/badge/last_modify-2022--11--03_11:33:41-orange.svg?style=flat-square
 
 [license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=flat-square
 
