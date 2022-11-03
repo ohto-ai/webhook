@@ -103,7 +103,7 @@ int main()
     {
         globalUserLogin.username = configJ["auth"]["username"];
         globalUserLogin.password = configJ["auth"]["password"];
-        isAuthEnabled = configJ["auth"].contains("enabled") ? configJ["auth"]["enabled"] : true;
+        isAuthEnabled = configJ["auth"].contains("enabled") ? configJ["auth"]["enabled"].get<bool>() : true;
     }
 
     if (!configJ.contains("listen") || !configJ.contains("hook"))
