@@ -13,7 +13,7 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 
 ## Sample
 > hook.json
-```cpp
+```json
 {
     "listen":{
         "prefix": "/webhook",
