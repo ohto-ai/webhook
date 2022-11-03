@@ -65,10 +65,16 @@ int main()
 
     ifs.close();
 
-    std::string log_console_level = configJ["log"]["console_level"];
-    std::string log_file_level = configJ["log"]["file_level"];
-    std::string log_file_path = configJ["log"]["file_path"];
-    std::string log_global_level = configJ["log"]["global_level"];
+    using namespace nlohmann::literals;
+    auto log_console_level_ptr = "/log/console_level"_json_pointer;
+    auto log_file_level_ptr = "/log/file_level"_json_pointer;
+    auto log_file_path_ptr = "/log/file_path"_json_pointer;
+    auto log_global_level_ptr = "/log/global_level"_json_pointer;
+
+    std::string log_console_level   = configJ.contains(log_console_level_ptr)   ? configJ[log_console_level_ptr]: "info";
+    std::string log_file_level      = configJ.contains(log_file_level_ptr)      ? configJ[log_file_level_ptr]   : "info";
+    std::string log_file_path       = configJ.contains(log_file_path_ptr)       ? configJ[log_file_path_ptr]    : "hook.log";
+    std::string log_global_level    = configJ.contains(log_global_level_ptr)    ? configJ[log_global_level_ptr] : "info";
 
     try
     {
@@ -88,14 +94,29 @@ int main()
 
     spdlog::info("Config loaded.");
 
-    httplib::Server server;
+    // auth
+    UserLogin globalUserLogin {};
+    bool isAuthEnabled { false };
+    if (configJ.contains("auth")
+        && configJ["auth"].contains("username")
+        && configJ["auth"].contains("password"))
+    {
+        globalUserLogin.username = configJ["auth"]["username"];
+        globalUserLogin.password = configJ["auth"]["password"];
+        isAuthEnabled = configJ["auth"].contains("enabled") ? configJ["auth"]["enabled"] : true;
+    }
 
-    UserLogin globalUserLogin{ configJ["auth"]["username"], configJ["auth"]["password"] };
-    bool isAuthEnabled = configJ["auth"]["enabled"];
+    if (!configJ.contains("listen") || !configJ.contains("hook"))
+    {
+        spdlog::error("{} and {} NOT FOUND in {}!", "listen", "hook", "hook.json");
+        return -1;
+    }
+
     std::string pathPrefix{};
     if (configJ["listen"].contains("prefix"))
         pathPrefix = configJ["listen"]["prefix"];
 
+    httplib::Server server;
     server.bind_to_port(configJ["listen"]["host"].get<std::string>().c_str(), configJ["listen"]["port"]);
 
     server.set_pre_routing_handler([&server, &globalUserLogin, isAuthEnabled, pathPrefix](const httplib::Request& req, httplib::Response& res)
@@ -157,7 +178,18 @@ int main()
 
         if (hook.contains("command"))
         {
-            command = hook["command"];
+            if (hook["command"].is_array())
+            {
+                for (const auto& cmd: hook["command"])
+                {
+                    command += cmd.get<std::string>() + " && ";
+                }
+            }
+            else
+            {
+                command = hook["command"].get<std::string>() + " && ";
+            }
+            command += "echo done";
         }
         if (hook["result"].contains("value"))
         {
@@ -229,6 +261,8 @@ int main()
         {
             spdlog::error("Illegal method: {}", method);
         }
+
+        spdlog::info("\n========================================");
     }
 
     return server.listen_after_bind();
