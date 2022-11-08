@@ -133,26 +133,26 @@ int main()
             {
                 if (req.method == "GET")
                 {
-                    if (!req.has_header("Authorization") || req.get_header_value("Authorization").empty())
-                    {
-                        res.set_header("WWW-Authenticate", "Basic");
-                        res.status = 401;
-                        return httplib::Server::HandlerResponse::Handled;
-                    }
-                    auto basic_auth_base64 = ohtoai::tool::string::split(
-                        ohtoai::tool::string::trimmed(req.get_header_value("Authorization")), " ").back();
-                    auto auth = ohtoai::tool::string::split(brynet::base::crypto::base64_decode(basic_auth_base64), ":");
+                    auto auth_verified = [&globalUserLogin](const auto&req){
+                        if (!req.has_header("Authorization") || req.get_header_value("Authorization").empty())
+                        {
+                            return false;
+                        }
+                        auto basic_auth_base64 = ohtoai::tool::string::split(
+                            ohtoai::tool::string::trimmed(req.get_header_value("Authorization")), " ").back();
+                        auto auth = ohtoai::tool::string::split(brynet::base::crypto::base64_decode(basic_auth_base64), ":");
 
-                    std::transform(auth.begin(), auth.end(), auth.begin(), ohtoai::tool::string::trimmed);
-                    if (auth.size() != 2)
-                    {
-                        spdlog::error("Error base64: {}", basic_auth_base64);
-                        res.set_header("WWW-Authenticate", "Basic");
-                        res.status = 401;
-                        return httplib::Server::HandlerResponse::Handled;
-                    }
+                        std::transform(auth.begin(), auth.end(), auth.begin(), ohtoai::tool::string::trimmed);
+                        if (auth.size() != 2)
+                        {
+                            spdlog::error("Error base64: {}", basic_auth_base64);
+                            return false;
+                        }
 
-                    if (auth[0] != globalUserLogin.username || auth[1] != globalUserLogin.password)
+                        return auth[0] == globalUserLogin.username && auth[1] == globalUserLogin.password;
+                    }(req);
+
+                    if (!auth_verified)
                     {
                         res.set_header("WWW-Authenticate", "Basic");
                         res.status = 401;
