@@ -159,7 +159,7 @@ int main()
                         return httplib::Server::HandlerResponse::Handled;
                     }
 
-                    spdlog::info("Auth {}", auth[0]);
+                    spdlog::info("Auth {} pass", globalUserLogin.username);
                 }
             }
 
