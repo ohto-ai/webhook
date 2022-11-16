@@ -41,19 +41,25 @@ struct UserLogin {
     std::string password;
 };
 
-#ifndef CODE_VERSION
-#define CODE_VERSION "undefined"
-#endif
-
-#ifndef CODE_DATE
-#define CODE_DATE "undefined"
-#endif
+const auto AsciiBanner[] = 
+{
+	" ██████╗ ██╗  ██╗████████╗ ██████╗        █████╗ ██╗"
+	"██╔═══██╗██║  ██║╚══██╔══╝██╔═══██╗      ██╔══██╗██║"
+	"██║   ██║███████║   ██║   ██║   ██║█████╗███████║██║"
+	"██║   ██║██╔══██║   ██║   ██║   ██║╚════╝██╔══██║██║"
+	"╚██████╔╝██║  ██║   ██║   ╚██████╔╝      ██║  ██║██║"
+	" ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝"                                                    
+};
 
 int main()
 {
     constexpr auto configPath{ "hook.json" };
 
-    spdlog::info("Application start.");
+	for(auto l : AsciiBanner)
+	{
+		spdlog::info("{}", l);
+	}
+    spdlog::info("{} start.", APPNAME);
     spdlog::info("Version {}\ton {}", CODE_VERSION, CODE_DATE);
     spdlog::info("Build on {} {} {}", BUILD_MACHINE_INFO, __DATE__, __TIME__);
     spdlog::info("Code hosted at {}", CODE_SERVER_PATH);

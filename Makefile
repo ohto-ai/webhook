@@ -8,7 +8,7 @@ CXXFLAGS = -std=c++14 -O3 -Iinc/ -DCPPHTTPLIB_OPENSSL_SUPPORT
 LDFLAGS = -lpthread  -lssl -lcrypto
 
 # Makefile settings - Can be customized.
-APPNAME = pull-hook
+APPNAME = webhook
 EXT = .cpp
 SRCDIR = .
 OBJDIR = obj
@@ -20,6 +20,7 @@ export CODE_SERVER_PATH = $(shell git remote -v | awk 'NR==1' | sed 's/[()]//g' 
 export BUILD_MACHINE_INFO = $(shell uname -srp)
 export BUILD_MACHINE_FULL_INFO = $(shell uname -a)
 
+CXXFLAGS += -DAPPNAME="\"$(APPNAME)\""
 CXXFLAGS += -DCODE_VERSION="\"$(CODE_VERSION)\""
 CXXFLAGS += -DCODE_DATE="\"$(CODE_DATE)\""
 CXXFLAGS += -DCODE_SERVER_PATH="\"$(CODE_SERVER_PATH)\""
