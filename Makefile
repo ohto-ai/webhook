@@ -17,8 +17,8 @@ OBJDIR = obj
 export CODE_VERSION = $(shell (git rev-parse --short HEAD))
 export CODE_DATE = $(shell (git log -1 --format=%cd ))
 
-CXXFLAGS += -DCODE_VERSION="$(CODE_VERSION)"
-CXXFLAGS += -DCODE_DATE="$(CODE_DATE)"
+CXXFLAGS += -DCODE_VERSION="\"$(CODE_VERSION)\""
+CXXFLAGS += -DCODE_DATE="\"$(CODE_DATE)\""
 
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))
