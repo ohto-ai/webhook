@@ -16,6 +16,9 @@ OBJDIR = obj
 # code info
 export CODE_VERSION = $(shell (git rev-parse --short HEAD))
 export CODE_DATE = $(shell (git log -1 --format=%cd ))
+export CODE_SERVER_PATH = $(shell git remote -v | awk 'NR==1' | sed 's/[()]//g' | sed 's/\t/ /g' |cut -d " " -f2)
+export BUILD_MACHINE_INFO = $(shell uname -srp)
+export BUILD_MACHINE_FULL_INFO = $(shell uname -a)
 
 CXXFLAGS += -DCODE_VERSION="\"$(CODE_VERSION)\""
 CXXFLAGS += -DCODE_DATE="\"$(CODE_DATE)\""

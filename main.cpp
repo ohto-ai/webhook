@@ -54,7 +54,9 @@ int main()
     constexpr auto configPath{ "hook.json" };
 
     spdlog::info("Application start.");
-    spdlog::info("Version {}\tBuild {}", CODE_VERSION, CODE_DATE);
+    spdlog::info("Version {}\ton {}", CODE_VERSION, CODE_DATE);
+    spdlog::info("Build on {} {} {}", BUILD_MACHINE_INFO, __DATE__, __TIME__);
+    spdlog::info("Code hosted at {}", CODE_SERVER_PATH);
     spdlog::info("Load config {}", configPath);
     std::ifstream ifs(configPath);
     if (!ifs) {
