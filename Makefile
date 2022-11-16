@@ -22,6 +22,9 @@ export BUILD_MACHINE_FULL_INFO = $(shell uname -a)
 
 CXXFLAGS += -DCODE_VERSION="\"$(CODE_VERSION)\""
 CXXFLAGS += -DCODE_DATE="\"$(CODE_DATE)\""
+CXXFLAGS += -DCODE_SERVER_PATH="\"$(CODE_SERVER_PATH)\""
+CXXFLAGS += -DBUILD_MACHINE_INFO="\"$(BUILD_MACHINE_INFO)\""
+CXXFLAGS += -DBUILD_MACHINE_FULL_INFO="\"$(BUILD_MACHINE_FULL_INFO)\""
 
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))
