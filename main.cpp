@@ -41,11 +41,20 @@ struct UserLogin {
     std::string password;
 };
 
+#ifndef CODE_VERSION
+#define CODE_VERSION "undefined"
+#endif
+
+#ifndef CODE_DATE
+#define CODE_DATE "undefined"
+#endif
+
 int main()
 {
     constexpr auto configPath{ "hook.json" };
 
     spdlog::info("Application start.");
+    spdlog::info("Version {}\tBuild {}", CODE_VERSION, CODE_DATE);
     spdlog::info("Load config {}", configPath);
     std::ifstream ifs(configPath);
     if (!ifs) {

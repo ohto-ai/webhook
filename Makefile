@@ -13,6 +13,15 @@ EXT = .cpp
 SRCDIR = .
 OBJDIR = obj
 
+# code info
+export CODE_VERSION = $(shell (git rev-parse --short HEAD))
+export CODE_BRANCH = $(shell (git branch))
+export CODE_DATE = $(shell (git log -1 --format=%cd ))
+
+CXXFLAGS += -DCODE_VERSION=\"$(CODE_VERSION)\"
+CXXFLAGS += -DCODE_BRANCH=\"$(CODE_BRANCH)\"
+CXXFLAGS += -DCODE_DATE=\"$(CODE_DATE)\"
+
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))
 OBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)/%.o)
