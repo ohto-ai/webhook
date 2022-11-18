@@ -1,4 +1,4 @@
-name: Platform CI & Release
+name: Ubuntu Platform CI & Release
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
         name: ${{ steps.package.outputs.packageName }}
         path: ${{ steps.package.outputs.packageName }}
     - name: Upload Release
-      if: ! startsWith(github.event.ref, 'refs/tags/v')
+      if: startsWith(github.event.ref, 'refs/tags/v') == false
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
