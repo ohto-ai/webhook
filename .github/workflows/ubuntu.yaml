@@ -1,0 +1,62 @@
+name: Platform CI & Release
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+        fetch-depth: 1
+
+    - name: Build
+      run: |
+        make -j8
+    - name: Package
+      id: package
+      env:
+        archiveName: ${{github.repository}}_linux
+      run: |
+        $name = ${env:archiveName}
+        $ref = ${{github.ref}}
+        echo "::set-output name=packageName::$name"
+        $tag_name = "${ref##*/}"
+        echo "::set-output name=tagName::$tag_name"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.package.outputs.packageName }}
+        path: ${{ steps.package.outputs.packageName }}
+    - name: Upload Release
+      if: ! startsWith(github.event.ref, 'refs/tags/v')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ steps.package.outputs.packageName }}.zip
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}.zip
+        tag: ${{ github.ref }}
+        overwrite: true
+        prerelease: true
+    - name: Upload Release
+      if: startsWith(github.event.ref, 'refs/tags/v')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ steps.package.outputs.packageName }}.zip
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}.zip
+        tag: ${{ github.ref }}
+        overwrite: true
