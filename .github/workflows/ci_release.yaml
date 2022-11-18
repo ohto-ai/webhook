@@ -37,7 +37,7 @@ jobs:
       shell: cmd
       run: |
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
-        nmake -j8
+        nmake
 
     - name: Package Ubuntu
       if: startsWith(matrix.os, 'ubuntu')
