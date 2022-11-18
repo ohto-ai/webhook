@@ -46,8 +46,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ steps.package.outputs.packageName }}.zip
-        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}.zip
+        file: ${{ steps.package.outputs.packageName }}
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}
         tag: ${{ github.ref }}
         overwrite: true
         prerelease: true
@@ -56,7 +56,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ steps.package.outputs.packageName }}.zip
-        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}.zip
+        file: ${{ steps.package.outputs.packageName }}
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}
         tag: ${{ github.ref }}
         overwrite: true
