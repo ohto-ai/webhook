@@ -41,7 +41,7 @@ jobs:
       with:
         name: ${{ steps.package.outputs.packageName }}
         path: ${{ steps.package.outputs.packageName }}
-    - name: Upload Release
+    - name: Upload Prerelease
       if: startsWith(github.event.ref, 'refs/tags/v') == false
       uses: svenstaro/upload-release-action@v2
       with:
