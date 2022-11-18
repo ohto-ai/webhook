@@ -31,7 +31,7 @@ jobs:
       env:
         archiveName: webhook
       run: |
-        name=${env:archiveName}
+        name=${env.archiveName}
         ref=${{github.ref}}
         tag_name="${ref##*/}"
         echo "packageName=$name" >> $GITHUB_OUTPUT
