@@ -49,7 +49,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.package.outputs.packageName }}
-        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.version }}
         tag: Pre-release-${{ steps.package.outputs.version }}
         overwrite: true
         prerelease: true
