@@ -33,9 +33,9 @@ jobs:
       run: |
         name=${env:archiveName}
         ref=${{github.ref}}
-        echo "::set-output name=packageName::$name"
         tag_name="${ref##*/}"
-        echo "::set-output name=tagName::$tag_name"
+        echo "packageName=$name" >> $GITHUB_OUTPUT
+        echo "tagName=$tag_name" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
