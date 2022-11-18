@@ -34,8 +34,10 @@ jobs:
         name=${{env.archiveName}}
         ref=${{github.ref}}
         tag_name="${ref##*/}"
+        version=`git rev-parse --short HEAD`;
         echo "packageName=$name" >> $GITHUB_OUTPUT
         echo "tagName=$tag_name" >> $GITHUB_OUTPUT
+        echo "version=$version" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
@@ -48,7 +50,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.package.outputs.packageName }}
         asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}
-        tag: ${{ github.ref }}
+        tag: Pre-release-${{ steps.package.outputs.version }}
         overwrite: true
         prerelease: true
     - name: Upload Release
