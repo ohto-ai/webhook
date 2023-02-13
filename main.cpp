@@ -1,20 +1,24 @@
 #include <cpp-httplib/httplib.h>
-#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/fmt/bundled/color.h>
+#include <spdlog/fmt/fmt.h>
+#include <mustache/mustache.hpp>
 #include <fstream>
 #include <algorithm>
 #include <iterator>
 #include <brynet/base/crypto/Base64.hpp>
+#include "def.h"
 #include "ohtoai/string_tools.hpp"
+#include "config_modal.hpp"
 
 std::string executeCommand(std::string cmd)
 {
-#   ifdef _WIN32
-#   define popen _popen
-#   define pclose _pclose
-#   endif
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
     auto f = popen(cmd.c_str(), "r");
     std::string display{};
     if (f != nullptr)
@@ -30,51 +34,62 @@ std::string executeCommand(std::string cmd)
     }
     return display;
 
-#   ifdef _WIN32
-#   undef popen
-#   undef pclose
-#   endif
+#ifdef _WIN32
+#undef popen
+#undef pclose
+#endif
 }
 
-struct UserLogin {
-    std::string username;
-    std::string password;
-};
-
-constexpr const char* AsciiBanner[] =
-{
-	" ██████╗ ██╗  ██╗████████╗ ██████╗        █████╗ ██╗",
-	"██╔═══██╗██║  ██║╚══██╔══╝██╔═══██╗      ██╔══██╗██║",
-	"██║   ██║███████║   ██║   ██║   ██║█████╗███████║██║",
-	"██║   ██║██╔══██║   ██║   ██║   ██║╚════╝██╔══██║██║",
-	"╚██████╔╝██║  ██║   ██║   ╚██████╔╝      ██║  ██║██║",
-	" ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝"
-};
+constexpr const char *AsciiBanner[] =
+    {
+        " ██████╗ ██╗  ██╗████████╗ ██████╗        █████╗ ██╗",
+        "██╔═══██╗██║  ██║╚══██╔══╝██╔═══██╗      ██╔══██╗██║",
+        "██║   ██║███████║   ██║   ██║   ██║█████╗███████║██║",
+        "██║   ██║██╔══██║   ██║   ██║   ██║╚════╝██╔══██║██║",
+        "╚██████╔╝██║  ██║   ██║   ╚██████╔╝      ██║  ██║██║",
+        " ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝"};
 
 int main()
 {
-    constexpr auto configPath{ "hook.json" };
+    constexpr auto configPath{"hook.json"};
 
-	for(auto l : AsciiBanner)
-	{
-		spdlog::info("{}", l);
-	}
-    spdlog::info("{} start.", APPNAME);
-    spdlog::info("Version {}\ton {}", CODE_VERSION, CODE_DATE);
-    spdlog::info("Build on {} {} {}", BUILD_MACHINE_INFO, __DATE__, __TIME__);
-    spdlog::info("Code hosted at {}", CODE_SERVER_PATH);
-    spdlog::info("Load config {}", configPath);
+    fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(AsciiBanner, "\n"));
+    fmt::print("{} start.\n", APPNAME);
+    fmt::print("Version {}\ton {}\n", CODE_VERSION, CODE_DATE);
+    fmt::print("Build on {} {} {}\n", BUILD_MACHINE_INFO, __DATE__, __TIME__);
+    fmt::print("Code hosted at {}\n", CODE_SERVER_PATH);
+    fmt::print("Load config {}\n", configPath);
+
+    WebhookConfigModal config;
     std::ifstream ifs(configPath);
-    if (!ifs) {
-        spdlog::error("Failed to open hook.json");
-        return -1;
+    if (!ifs)
+    {
+        Hook demoHook = {
+            .command = "echo -n \"Hello\"",
+            .method = "GET",
+            .name = "hi",
+            .path = "/hi",
+            .result = {
+                .type = "text/html",
+                .content = "<h1>{{&command_output}} {{&app}}</h1>",
+            },
+        };
+        config.hooks.push_back(demoHook);
+        nlohmann::json configJ = config;
+        std::ofstream ofs(configPath);
+        ofs << configJ.dump(4);
+        ofs.close();
+        spdlog::info("{} generated.", configPath);
+        return 0;
     }
 
-    nlohmann::json configJ;
-    try {
+    try
+    {
+        nlohmann::json configJ;
         ifs >> configJ;
+        configJ.get_to(config);
     }
-    catch (nlohmann::detail::exception e)
+    catch (std::exception e)
     {
         spdlog::error("{}", e.what());
         return -1;
@@ -82,174 +97,101 @@ int main()
 
     ifs.close();
 
-    using namespace nlohmann::literals;
-    auto log_console_level_ptr = "/log/console_level"_json_pointer;
-    auto log_file_level_ptr = "/log/file_level"_json_pointer;
-    auto log_file_path_ptr = "/log/file_path"_json_pointer;
-    auto log_global_level_ptr = "/log/global_level"_json_pointer;
-
-    std::string log_console_level   = configJ.contains(log_console_level_ptr)   ? configJ[log_console_level_ptr]: "info";
-    std::string log_file_level      = configJ.contains(log_file_level_ptr)      ? configJ[log_file_level_ptr]   : "info";
-    std::string log_file_path       = configJ.contains(log_file_path_ptr)       ? configJ[log_file_path_ptr]    : "hook.log";
-    std::string log_global_level    = configJ.contains(log_global_level_ptr)    ? configJ[log_global_level_ptr] : "info";
-
+    // Init log
     try
     {
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_level(spdlog::level::from_str(log_console_level));
+        console_sink->set_level(spdlog::level::from_str(config.log.console_level));
 
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file_path, true);
-        file_sink->set_level(spdlog::level::from_str(log_file_level));
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, true);
+        file_sink->set_level(spdlog::level::from_str(config.log.file_level));
 
-        spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({ console_sink, file_sink })));
-        spdlog::set_level(spdlog::level::from_str(log_global_level));
+        spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
+        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
     }
-    catch (const spdlog::spdlog_ex& ex)
+    catch (const spdlog::spdlog_ex &ex)
     {
-        std::cout << "Log initialization failed: " << ex.what() << std::endl;
+        fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
     }
 
     spdlog::info("Config loaded.");
 
-    // auth
-    UserLogin globalUserLogin {};
-    bool isAuthEnabled { false };
-    if (configJ.contains("auth")
-        && configJ["auth"].contains("username")
-        && configJ["auth"].contains("password"))
-    {
-        globalUserLogin.username = configJ["auth"]["username"];
-        globalUserLogin.password = configJ["auth"]["password"];
-        isAuthEnabled = configJ["auth"].contains("enabled") ? configJ["auth"]["enabled"].get<bool>() : true;
-    }
-
-    if (!configJ.contains("listen") || !configJ.contains("hook"))
-    {
-        spdlog::error("{} and {} NOT FOUND in {}!", "listen", "hook", "hook.json");
-        return -1;
-    }
-
-    std::string pathPrefix{};
-    if (configJ["listen"].contains("prefix"))
-        pathPrefix = configJ["listen"]["prefix"];
-
     httplib::Server server;
-    server.bind_to_port(configJ["listen"]["host"].get<std::string>().c_str(), configJ["listen"]["port"]);
+    server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
-    server.set_pre_routing_handler([&server, &globalUserLogin, isAuthEnabled, pathPrefix](const httplib::Request& req, httplib::Response& res)
-        {
-            if (!ohtoai::tool::string::start_with(req.path, pathPrefix))
-            {
-                spdlog::warn("Refuse to path {}", req.path);
-                return httplib::Server::HandlerResponse::Unhandled;
-            }
+    server.set_logger([](const httplib::Request &req, const httplib::Response &res)
+                      { spdlog::info("Response {} {}", req.method, req.path);
+                      spdlog::info("Send {} bytes", res.body.size()); });
 
-            spdlog::info("Routing {} {} \nReceive {} bytes\n{}", req.method, req.path, req.body.size(), req.body);
-
-            if (isAuthEnabled)
-            {
-                if (req.method == "GET")
-                {
-                    auto auth_verified = [&globalUserLogin](const auto&req){
-                        if (!req.has_header("Authorization") || req.get_header_value("Authorization").empty())
-                        {
-                            return false;
-                        }
-                        auto basic_auth_base64 = ohtoai::tool::string::split(
-                            ohtoai::tool::string::trimmed(req.get_header_value("Authorization")), " ").back();
-                        auto auth = ohtoai::tool::string::split(brynet::base::crypto::base64_decode(basic_auth_base64), ":");
-
-                        std::transform(auth.begin(), auth.end(), auth.begin(), ohtoai::tool::string::trimmed);
-                        if (auth.size() != 2)
-                        {
-                            spdlog::error("Error base64: {}", basic_auth_base64);
-                            return false;
-                        }
-
-                        return auth[0] == globalUserLogin.username && auth[1] == globalUserLogin.password;
-                    }(req);
-
-                    if (!auth_verified)
-                    {
-                        res.set_header("WWW-Authenticate", "Basic");
-                        res.status = 401;
-                        return httplib::Server::HandlerResponse::Handled;
-                    }
-
-                    spdlog::info("Auth {} pass", globalUserLogin.username);
-                }
-            }
-
-            return httplib::Server::HandlerResponse::Unhandled;
-        });
-
-    for (auto hook : configJ["hook"])
+    if (!config.listen.auth.path.empty() && !config.listen.auth.username.empty() && !config.listen.auth.password.empty())
     {
-        std::string name = hook["name"];
-        std::string method = hook["method"];
-        std::string path = pathPrefix + hook["path"].get<std::string>();
-        std::string command{};
-        std::string result_from = hook["result"]["from"];
-        std::string result_type = hook["result"]["type"];
-        std::string result_value{};
+        spdlog::info("Auth enabled: {} {} {}", config.listen.auth.path, config.listen.auth.username, config.listen.auth.password);
+        server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
+                                       {
+                                           if (!ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
+                                               return httplib::Server::HandlerResponse::Unhandled;
+                                           // verify username && password
+                                           if (req.has_header("Authorization"))
+                                           {
+                                               std::string auth = req.get_header_value("Authorization");
+                                               if (auth.find("Basic ") == 0)
+                                               {
+                                                   auth = auth.substr(6);
+                                                   auth = brynet::base::crypto::base64_decode(auth);
+                                                   if (auth.find(":") != std::string::npos)
+                                                   {
+                                                       std::string username = auth.substr(0, auth.find(":"));
+                                                       std::string password = auth.substr(auth.find(":") + 1);
+                                                       if (username == config.listen.auth.username && password == config.listen.auth.password)
+                                                       {
+                                                           return httplib::Server::HandlerResponse::Unhandled;
+                                                       }
+                                                   }
+                                               }
+                                           }
 
-        if (hook.contains("command"))
-        {
-            if (hook["command"].is_array())
-            {
-                for (const auto& cmd: hook["command"])
-                {
-                    command += cmd.get<std::string>() + " && ";
-                }
-            }
-            else
-            {
-                command = hook["command"].get<std::string>() + " && ";
-            }
-            command += "echo done";
-        }
-        if (hook["result"].contains("value"))
-        {
-            result_value = hook["result"]["value"];
-        }
+                                           spdlog::warn("Auth failed");
+                                           res.status = 401;
+                                           res.set_header("WWW-Authenticate", "Basic realm=\"Webhook\"");
+                                           res.set_content("Unauthorized", "text/plain");
+                                           return httplib::Server::HandlerResponse::Handled; });
+    }
 
-        if (result_type.empty())
-            result_type = "text/plain";
-
-        ohtoai::tool::string::transform_to_upper(method);
+    for (const auto &hook : config.hooks)
+    {
+        std::string name = hook.name;
+        std::string method = ohtoai::tool::string::to_upper(hook.method);
+        std::string path = fmt::format("{}{}", config.listen.prefix, hook.path);
+        std::string command = hook.command;
+        std::string content_type = hook.result.type;
+        std::string content = hook.result.content;
 
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
-        auto handler = [=, &server](const httplib::Request& req, httplib::Response& res)
+        auto handler = [=, &server](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Hook `{}`", name);
-            std::string command_result{};
 
-            if (command.empty())
+            std::string command_output{};
+            if (!command.empty())
             {
-                spdlog::info("No command given");
+                spdlog::info("Run `{}`", command);
+                command_output = executeCommand(command);
             }
-            else
-            {
-                command_result = executeCommand(command);
-                spdlog::info("Run command `{}`\n{}", command, command_result);
-            }
+            kainjow::mustache::data context;
+            context.set("name", name);
+            context.set("method", method);
+            context.set("path", path);
+            context.set("command", command);
+            context.set("content_type", content_type);
+            context.set("command_output", command_output);
+            context.set("app", APPNAME);
+            kainjow::mustache::mustache content_tmpl{content};
 
-            if (result_from == "command")
-            {
-                res.set_content(command_result, result_type.c_str());
-                spdlog::info("Set content to `{}`", command_result);
-            }
-            else if (result_from == "constant")
-            {
-                res.set_content(result_value, result_type.c_str());
-                spdlog::info("Set content to `{}`", result_value);
-            }
-            else
-            {
-                spdlog::error("Unknown result_from `{}`", result_from);
-            }
-            spdlog::info("\n==================================================");
+            auto result = content_tmpl.render(context);
+            res.set_content(result, content_type.c_str());
+            spdlog::info("Render: \n\r{}\n", result);
+            fmt::print(fg(fmt::color::green), "\r{:=^80}\n", " Done ");
         };
         if (method == "GET")
         {
@@ -280,8 +222,9 @@ int main()
             spdlog::error("Illegal method: {}", method);
         }
     }
-    spdlog::info("\n==================================================");
-    spdlog::info("Server listen {}:{}.", configJ["listen"]["host"].get<std::string>(), configJ["listen"]["port"].get<int>());
+
+    fmt::print(fg(fmt::color::green), "\r{:=^80}\n", " Done ");
+    spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
     return server.listen_after_bind();
 }

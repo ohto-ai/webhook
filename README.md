@@ -15,69 +15,34 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 > hook.json
 ```json
 {
-    "listen":{
-        "prefix": "/webhook",
-        "host":"localhost",
-        "port":8003
+    "hooks": [
+        {
+            "command": "echo -n \"Hello\"",
+            "method": "GET",
+            "name": "hi",
+            "path": "/hi",
+            "result": {
+                "content": "<h1>{{&command_output}} {{&app}}</h1>",
+                "type": "text/html"
+            }
+        }
+    ],
+    "listen": {
+        "auth": {
+            "password": "",
+            "path": "/",
+            "username": ""
+        },
+        "host": "localhost",
+        "port": 8080,
+        "prefix": "/api"
     },
     "log": {
         "console_level": "info",
         "file_level": "info",
-        "file_path": "hook.log",
+        "file_path": "webhook.log",
         "global_level": "info"
-    },
-    "auth": {
-        "enabled": true,
-        "username": "admin",
-        "password": "password"
-    },
-    "hook": [
-        {
-            "name": "pull-repo",
-            "method": "POST",
-            "path": "/api/update",
-            "command": "cd ~/workspace/myrepo && git pull --recurse-submodules",
-            "result":
-            {
-                "from": "constant",
-                "value": "success",
-                "type": "text/plain"
-            }
-        },
-        {
-            "name": "hello",
-            "method": "GET",
-            "path": "/api/hello",
-            "command": "echo Hi there, this is pull-hook test page.",
-            "result":
-            {
-                "from": "command",
-                "type": "text/plain"
-            }
-        },
-        {
-            "name": "hi",
-            "method": "GET",
-            "path": "/api/hi",
-            "result":
-            {
-                "from": "constant",
-                "value": "Hi!!!",
-                "type": "text/plain"
-            }
-        },
-        {
-            "name": "hi-html",
-            "method": "GET",
-            "path": "/api/html",
-            "result":
-            {
-                "from": "constant",
-                "value": "<!DOCTYPE html><html><body><h1>Hi, this is a html page</h1></body></html>",
-                "type": "text/html"
-            }
-        }
-    ]
+    }
 }
 ```
 
