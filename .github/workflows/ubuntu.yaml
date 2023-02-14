@@ -1,7 +1,6 @@
 name: Ubuntu Platform CI & Release
 
 on:
-  branch: [master]
   push:
     paths-ignore:
       - 'README.md'
@@ -40,12 +39,13 @@ jobs:
         echo "tagName=$tag_name" >> $GITHUB_OUTPUT
         echo "version=$version" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
+      if:  ${GITHUB_REF#refs/heads/} == 'master'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.package.outputs.packageName }}
         path: ${{ steps.package.outputs.packageName }}
     - name: Upload Prerelease
-      if: startsWith(github.event.ref, 'refs/tags/v') == false
+      if: startsWith(github.event.ref, 'refs/tags/v') == false && ${GITHUB_REF#refs/heads/} == 'master'
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
           This is a pre-release version of the webhook package.
           It is not recommended to use this version in production.
     - name: Upload Release
-      if: startsWith(github.event.ref, 'refs/tags/v')
+      if: startsWith(github.event.ref, 'refs/tags/v') && ${GITHUB_REF#refs/heads/} == 'master'
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
