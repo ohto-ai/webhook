@@ -1,6 +1,7 @@
 name: Ubuntu Platform CI & Release
 
 on:
+  branch: [master]
   push:
     paths-ignore:
       - 'README.md'
@@ -53,6 +54,9 @@ jobs:
         tag: Pre-release-${{ steps.package.outputs.version }}
         overwrite: true
         prerelease: true
+        body: |
+          This is a pre-release version of the webhook package.
+          It is not recommended to use this version in production.
     - name: Upload Release
       if: startsWith(github.event.ref, 'refs/tags/v')
       uses: svenstaro/upload-release-action@v2
