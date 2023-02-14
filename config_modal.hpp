@@ -10,7 +10,7 @@ struct BasicAuth {
 
 struct Result {
     std::string type = "text/plain";
-    std::string content = ""; // {{command_output}}  {{command_return}} {{command}}
+    std::string content = "";
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Result, type, content)
 };
 
