@@ -31,9 +31,9 @@ jobs:
       env:
         archiveName: webhook
       run: |
-        name="${{env.archiveName}}_${{ matrix.os }}"
+        name="${{env.archiveName}}"
         ref=${{github.ref}}
-        tag_name="${ref##*/}"
+        tag_name="${ref##*/}_${{ matrix.os }}"
         version=`git rev-parse --short HEAD`;
         echo "packageName=$name" >> $GITHUB_OUTPUT
         echo "tagName=$tag_name" >> $GITHUB_OUTPUT
