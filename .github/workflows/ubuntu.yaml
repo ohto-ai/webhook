@@ -33,7 +33,7 @@ jobs:
       run: |
         name="${{env.archiveName}}"
         ref=${{github.ref}}
-        tag_name="${ref##*/}_${{ matrix.os }}"
+        tag_name="${ref##*/}"
         version=`git rev-parse --short HEAD`;
         echo "packageName=$name" >> $GITHUB_OUTPUT
         echo "tagName=$tag_name" >> $GITHUB_OUTPUT
@@ -49,7 +49,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.package.outputs.packageName }}
-        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.version }}
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ matrix.os }}_${{ steps.package.outputs.version }}
         tag: Pre-release-${{ steps.package.outputs.version }}
         overwrite: true
         prerelease: true
@@ -59,6 +59,6 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.package.outputs.packageName }}
-        asset_name: ${{ steps.package.outputs.packageName }}_${{ steps.package.outputs.tagName }}
+        asset_name: ${{ steps.package.outputs.packageName }}_${{ matrix.os }}_${{ steps.package.outputs.tagName }}
         tag: ${{ github.ref }}
         overwrite: true
