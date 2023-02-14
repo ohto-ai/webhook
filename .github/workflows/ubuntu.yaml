@@ -1,6 +1,7 @@
 name: Ubuntu Platform CI & Release
 
 on:
+  branch: [master]
   push:
     paths-ignore:
       - 'README.md'
