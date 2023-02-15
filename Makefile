@@ -4,13 +4,13 @@
 
 # Compiler settings - Can be customized.
 CC = g++
-CXXFLAGS = -std=c++14 -O3 -Iinc/ -DCPPHTTPLIB_OPENSSL_SUPPORT
+CXXFLAGS = -std=c++17 -O3 -Isrc/inc/ -DCPPHTTPLIB_OPENSSL_SUPPORT
 LDFLAGS = -lpthread  -lssl -lcrypto
 
 # Makefile settings - Can be customized.
 APPNAME = webhook
 EXT = .cpp
-SRCDIR = .
+SRCDIR = src
 OBJDIR = obj
 
 # code info

@@ -5,59 +5,38 @@
 #include <spdlog/fmt/bundled/color.h>
 #include <spdlog/fmt/fmt.h>
 #include <mustache/mustache.hpp>
+#include <argparse/argparse.hpp>
 #include <fstream>
 #include <algorithm>
 #include <iterator>
 #include <brynet/base/crypto/Base64.hpp>
-#include "def.h"
 #include "ohtoai/string_tools.hpp"
 #include "config_modal.hpp"
+#include "util/platform.hpp"
+#include "util/compiler.hpp"
+#include "version.h"
 
-std::string executeCommand(std::string cmd)
-{
-#ifdef _WIN32
-#define popen _popen
-#define pclose _pclose
-#endif
-    auto f = popen(cmd.c_str(), "r");
-    std::string display{};
-    if (f != nullptr)
-    {
-        char buf_ps[1024];
-        while (fgets(buf_ps, sizeof(buf_ps), f) != nullptr)
-            display += buf_ps;
-        pclose(f);
-    }
-    else
-    {
-        spdlog::error("Cannot open pip `{}`", cmd);
-    }
-    return display;
-
-#ifdef _WIN32
-#undef popen
-#undef pclose
-#endif
-}
-
-constexpr const char *AsciiBanner[] =
-    {
-        " ██████╗ ██╗  ██╗████████╗ ██████╗        █████╗ ██╗",
-        "██╔═══██╗██║  ██║╚══██╔══╝██╔═══██╗      ██╔══██╗██║",
-        "██║   ██║███████║   ██║   ██║   ██║█████╗███████║██║",
-        "██║   ██║██╔══██║   ██║   ██║   ██║╚════╝██╔══██║██║",
-        "╚██████╔╝██║  ██║   ██║   ╚██████╔╝      ██║  ██║██║",
-        " ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝"};
-
-int main()
+int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
+    argparse::ArgumentParser parser(APPNAME, VERSION_STRING);
+
+    try
+    {
+        parser.parse_args(argc, argv);
+    }
+    catch (const std::runtime_error &err)
+    {
+        fmt::print(stderr, "{}\n", err.what());
+        fmt::print(stderr, "{}\n", parser.help().str());
+        std::exit(1);
+    }
 
     fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(AsciiBanner, "\n"));
-    fmt::print("{} start.\n", APPNAME);
-    fmt::print("Version {}\ton {}\n", CODE_VERSION, CODE_DATE);
-    fmt::print("Build on {} {} {}\n", BUILD_MACHINE_INFO, __DATE__, __TIME__);
-    fmt::print("Code hosted at {}\n", CODE_SERVER_PATH);
+    fmt::print("{} start.\n", CompilerHelper::getInstance().AppName);
+    fmt::print("Version {}({})\ton {}\n", VERSION_STRING, CompilerHelper::getInstance().CodeVersion, CompilerHelper::getInstance().CodeDate);
+    fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
+    fmt::print("Code hosted at {}\n", CompilerHelper::getInstance().CodeServerPath);
     fmt::print("Load config {}\n", configPath);
 
     WebhookConfigModal config;
@@ -108,6 +87,8 @@ int main()
 
         spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
         spdlog::set_level(spdlog::level::from_str(config.log.global_level));
+
+        spdlog::info("test log");
     }
     catch (const spdlog::spdlog_ex &ex)
     {
@@ -176,7 +157,7 @@ int main()
             if (!command.empty())
             {
                 spdlog::info("Run `{}`", command);
-                command_output = executeCommand(command);
+                command_output = PlatformHelper::getInstance().executeCommand(command);
             }
             kainjow::mustache::data context;
             context.set("name", name);
