@@ -86,9 +86,8 @@ int main(int argc, char **argv)
         file_sink->set_level(spdlog::level::from_str(config.log.file_level));
 
         spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
-        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
-
-        spdlog::info("test log");
+        spdlog::set_level(spdlog::level::from_str(config.log.global_level));    
+        spdlog::flush_every(std::chrono::seconds(5));
     }
     catch (const spdlog::spdlog_ex &ex)
     {
