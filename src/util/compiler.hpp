@@ -7,9 +7,6 @@
 #ifndef CODE_DATE
 #define CODE_DATE "Fri Nov 18 00:00:00 2022 +0800"
 #endif
-#ifndef CODE_SERVER_PATH
-#define CODE_SERVER_PATH "https://github.com/Ohto-Ai/webhook/"
-#endif
 #ifndef BUILD_MACHINE_INFO
 #define BUILD_MACHINE_INFO "Linux 5.4.0-121-generic x86_64"
 #endif
@@ -35,9 +32,9 @@ public:
     const char *AppName = APPNAME;
     const char *CodeVersion = CODE_VERSION;
     const char *CodeDate = CODE_DATE;
-    const char *CodeServerPath = CODE_SERVER_PATH;
     const char *BuildMachineInfo = BUILD_MACHINE_INFO;
     const char *BuildMachineFullInfo = BUILD_MACHINE_FULL_INFO;
     const char *BuildDate = __DATE__;
     const char *BuildTime = __TIME__;
+
 };

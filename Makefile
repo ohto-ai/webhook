@@ -14,18 +14,27 @@ SRCDIR = src
 OBJDIR = obj
 
 # code info
-export CODE_VERSION = $(shell (git rev-parse --short HEAD))
-export CODE_DATE = $(shell (git log -1 --format=%cd))
-export CODE_SERVER_PATH = $(shell git remote -v | awk 'NR==1' | sed 's/[()]//g' | sed 's/\t/ /g' |cut -d " " -f2)
-export BUILD_MACHINE_INFO = $(shell uname -srp)
-export BUILD_MACHINE_FULL_INFO = $(shell uname -a)
+CODE_VERSION = $(shell (git rev-parse --short HEAD 2>/dev/null || echo '0000000'))
+CODE_DATE = $(shell (git log -1 --format=%cd 2>/dev/null || echo 'Fri Nov 18 00:00:00 2022 +0800'))
+BUILD_MACHINE_INFO = $(shell uname -srp)
+BUILD_MACHINE_FULL_INFO = $(shell uname -a)
+
+# Get the latest git tag
+LATEST_GIT_TAG := $(shell git describe --tags --abbrev=0)
+
+# If the tag starts with 'v', add it to the macro definition
+ifeq ($(firstword $(LATEST_GIT_TAG)),v)
+	CXXFLAGS += -DVERSION_TAG="\"$(LATEST_GIT_TAG)\""
+else
+	CXXFLAGS += -DVERSION_TAG="\"Dev_$(LATEST_GIT_TAG)\""
+endif
 
 CXXFLAGS += -DAPPNAME="\"$(APPNAME)\""
 CXXFLAGS += -DCODE_VERSION="\"$(CODE_VERSION)\""
 CXXFLAGS += -DCODE_DATE="\"$(CODE_DATE)\""
-CXXFLAGS += -DCODE_SERVER_PATH="\"$(CODE_SERVER_PATH)\""
 CXXFLAGS += -DBUILD_MACHINE_INFO="\"$(BUILD_MACHINE_INFO)\""
 CXXFLAGS += -DBUILD_MACHINE_FULL_INFO="\"$(BUILD_MACHINE_FULL_INFO)\""
+CXXFLAGS += -DLATEST_GIT_TAG="\"$(LATEST_GIT_TAG)\""
 
 ############## Do not change anything from here downwards! #############
 SRC = $(wildcard $(SRCDIR)/*$(EXT))
@@ -38,8 +47,6 @@ DELOBJ = $(OBJ)
 DEL = del
 EXE = .exe
 WDELOBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)\\%.o)
-
-USERNAME_REPONAME=`git remote -v | grep -Po "(?<=:)[a-zA-Z0-9\\._/-]+?(?=((\\.git)? \\(fetch\\)))"`
 
 ########################################################################
 ####################### Targets beginning here #########################
