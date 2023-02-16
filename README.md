@@ -46,14 +46,6 @@ This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook th
 }
 ```
 
-## Todo
-
- - Support chaiscript
- - Support request param
- - [optional] Support redirect/proxy
- - [optional] Support response op
- - [optional] Support conditional-op
-
 [license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=flat-square
 
 [issues:badge]: https://img.shields.io/github/issues/Ohto-Ai/webhook?logo=github&style=flat-square
