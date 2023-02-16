@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webhook", "webhook.vcxproj", "{1F659BE3-061A-4845-88B3-0CEFD0FE0D9A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webhook", "src\webhook.vcxproj", "{1F659BE3-061A-4845-88B3-0CEFD0FE0D9A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{A2F1D049-A3B8-4594-BAC3-F0CF4DEA7511}"
 EndProject
