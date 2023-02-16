@@ -1,12 +1,15 @@
 #include <sstream>
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define popen _popen
 #define pclose _pclose
+#define WIN32_LEAN_AND_MEAN
+#defiine NOMINMAX
 #include <windows.h>
-#elif __linux__
-#elif __APPLE__
-#include <sys/sysctl.h>
+#elif defined(__linux__)
+#include <sys/ioctl.h>
+#elif defined(__APPLE__)
+#include <sys/ioctl.h>
 #endif
 
 class PlatformHelper
@@ -23,7 +26,7 @@ public:
         return instance;
     }
 
-    inline std::string executeCommand(std::string cmd)
+    inline std::string executeCommand(std::string cmd) const
     {
         auto f = popen(cmd.c_str(), "r");
         std::stringstream display;
@@ -37,7 +40,7 @@ public:
         return display.str();
     }
 
-    inline std::string getPlatform()
+    inline std::string getPlatform() const
     {
 // 获取运行平台
 #ifdef _WIN32
@@ -51,7 +54,7 @@ public:
 #endif
     }
 
-    inline std::string getCpuInfo()
+    inline std::string getCpuInfo() const
     {
 #ifdef _WIN32
         // Windows implementation
@@ -68,6 +71,28 @@ public:
         systeminfo | findstr / C : "Processor" systeminfo | findstr / C : "Processor" size_t len = sizeof(model);
         sysctl(mib, 2, &model, &len, NULL, 0);
         return model;
+#endif
+    }
+
+    inline int getTerminalWidth() const
+    {
+#ifdef _WIN32
+        return GetSystemMetrics(SM_CXSCREEN);
+#else
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        return w.ws_col;
+#endif
+    }
+
+    inline int getTerminalHeight() const
+    {
+#ifdef _WIN32
+        return GetSystemMetrics(SM_CYSCREEN);
+#else
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        return w.ws_row;
 #endif
     }
 };

@@ -33,10 +33,10 @@ int main(int argc, char **argv)
     }
 
     fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(AsciiBanner, "\n"));
-    fmt::print("{} start.\n", CompilerHelper::getInstance().AppName);
-    fmt::print("Version {}({})\ton {}\n", VERSION_STRING, CompilerHelper::getInstance().CodeVersion, CompilerHelper::getInstance().CodeDate);
+    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
+    fmt::print("Run {}.\n", CompilerHelper::getInstance().AppName);
+    fmt::print("Version {}({}) on {}\n", VERSION_STRING, CompilerHelper::getInstance().CodeVersion, CompilerHelper::getInstance().CodeDate);
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
-    fmt::print("Code hosted at {}\n", CompilerHelper::getInstance().CodeServerPath);
     fmt::print("Load config {}\n", configPath);
 
     WebhookConfigModal config;
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         std::ofstream ofs(configPath);
         ofs << configJ.dump(4);
         ofs.close();
-        spdlog::info("{} generated.", configPath);
+        fmt::print("{} generated.\n", configPath);
         return 0;
     }
 
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     }
     catch (std::exception e)
     {
-        spdlog::error("{}", e.what());
+        fmt::print(stderr, "{}\n", e.what());
         return -1;
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
     }
 
-    spdlog::info("Config loaded.");
+    fmt::print("Config loaded.\n");
 
     httplib::Server server;
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
             auto result = content_tmpl.render(context);
             res.set_content(result, content_type.c_str());
             spdlog::info("Render: \n\r{}\n", result);
-            fmt::print(fg(fmt::color::green), "\r{:=^80}\n", " Done ");
+            fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth());
         };
         if (method == "GET")
         {
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
         }
     }
 
-    fmt::print(fg(fmt::color::green), "\r{:=^80}\n", " Done ");
+    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
     return server.listen_after_bind();
