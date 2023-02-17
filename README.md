@@ -9,7 +9,7 @@
 
 ## Introduction
 
-This repository is a web hook on Windows/Linux/MacOS. It is a simple web hook that can be used to execute commands / show pages on the server.
+This repository is a web hook on Linux. It is a simple web hook that can be used to execute commands / show pages on the server.
 
 ## Sample
 > hook.json
