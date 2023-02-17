@@ -2,7 +2,17 @@ name: Ubuntu Platform CI & Release
 
 on:
   push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
   workflow_dispatch:
 jobs:
   build:
