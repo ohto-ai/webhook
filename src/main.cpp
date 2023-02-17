@@ -19,7 +19,7 @@
 int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
-    argparse::ArgumentParser parser(APPNAME, VersionHelper::getInstance().Version);
+    argparse::ArgumentParser parser(CompilerHelper::getInstance().AppName, VersionHelper::getInstance().Version);
 
     try
     {
@@ -143,13 +143,27 @@ int main(int argc, char **argv)
                 command_output = PlatformHelper::getInstance().executeCommand(command);
             }
             kainjow::mustache::data context;
+            kainjow::mustache::data request;
+            kainjow::mustache::data response;
+            
+            request.set("method", req.method);
+            request.set("path", req.path);
+            request.set("user_agent", req.get_header_value("User-Agent"));
+            request.set("body", req.body);
+            request.set("remote_addr", req.remote_addr);
+            request.set("remote_port", std::to_string(req.remote_port));
+
+            response.set("content_length", std::to_string(req.body.size()));
+            response.set("content_type", content_type);
+            response.set("command_output", command_output);
+
             context.set("name", name);
-            context.set("method", method);
-            context.set("path", path);
             context.set("command", command);
-            context.set("content_type", content_type);
-            context.set("command_output", command_output);
-            context.set("app", APPNAME);
+            context.set("app", CompilerHelper::getInstance().AppName);
+            context.set("version", VersionHelper::getInstance().Version);
+            context.set("request", request);
+            context.set("response", response);
+            
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
