@@ -8,5 +8,8 @@ obj/**
 # config
 hook.json
 
+#log
+*.log
+
 # exe
 webhook

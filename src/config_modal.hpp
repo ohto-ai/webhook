@@ -80,7 +80,13 @@ struct WebhookConfigModal {
             .path = "/hi",
             .result = {
                 .type = "text/html",
-                .content = "<h1>{{&command_output}} {{&app}}</h1>",
+                .content = R"(<h1>{{#response}}{{&command_output}}{{/response}} {{&app}} {{&version}}</h1>
+{{#request}}
+<p>Method: {{&method}}</p>
+<p>Path: {{&path}}</p>
+<p>User-Agent: {{&user_agent}}</p>
+<p>Client: {{&remote_addr}}:{{&remote_port}}</p>
+{{/request}})",
             },
         };
         config.hooks.push_back(demoHook);
