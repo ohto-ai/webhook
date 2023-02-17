@@ -3,8 +3,6 @@ name: Ubuntu Platform CI & Release
 on:
   push:
   pull_request:
-    branches:
-      - master
 jobs:
   build:
     name: Build
@@ -35,13 +33,13 @@ jobs:
         echo "tagName=$tag_name" >> $GITHUB_OUTPUT
         echo "version=$version" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
-      if:  ${GITHUB_REF#refs/heads/} == 'master'
+      if: github.event.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.package.outputs.packageName }}
         path: ${{ steps.package.outputs.packageName }}
     - name: Upload Prerelease
-      if: startsWith(github.event.ref, 'refs/tags/v') == false && ${GITHUB_REF#refs/heads/} == 'master'
+      if: github.event.ref == 'refs/heads/master' && startsWith(github.event.ref, 'refs/tags/v') == false
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -54,7 +52,7 @@ jobs:
           This is a pre-release version of the webhook package.
           It is not recommended to use this version in production.
     - name: Upload Release
-      if: startsWith(github.event.ref, 'refs/tags/v') && ${GITHUB_REF#refs/heads/} == 'master'
+      if: github.event.ref == 'refs/heads/master' && startsWith(github.event.ref, 'refs/tags/v')
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,7 +61,7 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
     - name: Add Release Notes
-      if: startsWith(github.event.ref, 'refs/tags/v') && ${GITHUB_REF#refs/heads/} == 'master'
+      if: github.event.ref == 'refs/heads/master' && startsWith(github.event.ref, 'refs/tags/v')
       uses: svenstaro/add-release-notes@v1
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
