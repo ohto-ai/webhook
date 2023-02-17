@@ -24,7 +24,9 @@ jobs:
       run: |
         make -j8
         name="${{env.archiveName}}"
+        hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
+        echo "commit_hash=$hash" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
       if: github.ref_name == 'master'
       uses: actions/upload-artifact@v3
@@ -32,13 +34,13 @@ jobs:
         name: ${{ steps.build.outputs.package_name }}
         path: ${{ steps.build.outputs.package_name }}
     - name: Upload Prerelease
-      if: github.ref_type == 'branch' && github.ref_name == 'master'
+      if: stgithub.ref_type == 'branch' && github.ref_name == 'master'
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.build.outputs.package_name }}
         asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}
-        tag: Prerelease_${{ github.sha }}
+        tag: Prerelease_${{ steps.build.outputs.commit_hash }}
         overwrite: true
         prerelease: true
         body: |
