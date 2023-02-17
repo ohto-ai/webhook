@@ -14,12 +14,12 @@
 #include "config_modal.hpp"
 #include "util/platform.hpp"
 #include "util/compiler.hpp"
-#include "version.h"
+#include "util/version.hpp"
 
 int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
-    argparse::ArgumentParser parser(APPNAME, VERSION_STRING);
+    argparse::ArgumentParser parser(APPNAME, VersionHelper::getInstance().Version);
 
     try
     {
@@ -32,49 +32,34 @@ int main(int argc, char **argv)
         std::exit(1);
     }
 
-    fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(AsciiBanner, "\n"));
+    fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(VersionHelper::getInstance().AsciiBanner, "\n"));
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
     fmt::print("Run {}.\n", CompilerHelper::getInstance().AppName);
-    fmt::print("Version {}({}) on {}\n", VERSION_STRING, CompilerHelper::getInstance().CodeVersion, CompilerHelper::getInstance().CodeDate);
+    fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, CompilerHelper::getInstance().CommitHash, CompilerHelper::getInstance().CommitDate);
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
-    fmt::print("Load config {}\n", configPath);
+    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    WebhookConfigModal config;
-    std::ifstream ifs(configPath);
-    if (!ifs)
+
+    // 判断配置文件是否存在
+    if (!std::filesystem::exists(configPath))
     {
-        Hook demoHook = {
-            .command = "echo -n \"Hello\"",
-            .method = "GET",
-            .name = "hi",
-            .path = "/hi",
-            .result = {
-                .type = "text/html",
-                .content = "<h1>{{&command_output}} {{&app}}</h1>",
-            },
-        };
-        config.hooks.push_back(demoHook);
-        nlohmann::json configJ = config;
-        std::ofstream ofs(configPath);
-        ofs << configJ.dump(4);
-        ofs.close();
-        fmt::print("{} generated.\n", configPath);
+        WebhookConfigModal::generate(configPath);
+        fmt::print("Config file not found, generate a new one.\n");
         return 0;
     }
 
+    fmt::print("Load config {}\n", configPath);
+    WebhookConfigModal config;
     try
     {
-        nlohmann::json configJ;
-        ifs >> configJ;
-        configJ.get_to(config);
+        config = WebhookConfigModal::load(configPath);
     }
     catch (std::exception e)
     {
         fmt::print(stderr, "{}\n", e.what());
         return -1;
     }
-
-    ifs.close();
+    fmt::print("Config loaded.\n");
 
     // Init log
     try
@@ -94,7 +79,6 @@ int main(int argc, char **argv)
         fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
     }
 
-    fmt::print("Config loaded.\n");
 
     httplib::Server server;
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
@@ -203,7 +187,6 @@ int main(int argc, char **argv)
         }
     }
 
-    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
     return server.listen_after_bind();

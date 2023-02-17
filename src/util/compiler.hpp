@@ -30,8 +30,8 @@ public:
 
 public:
     const char *AppName = APPNAME;
-    const char *CodeVersion = CODE_VERSION;
-    const char *CodeDate = CODE_DATE;
+    const char *CommitHash = COMMIT_HASH;
+    const char *CommitDate = COMMIT_DATE;
     const char *BuildMachineInfo = BUILD_MACHINE_INFO;
     const char *BuildMachineFullInfo = BUILD_MACHINE_FULL_INFO;
     const char *BuildDate = __DATE__;
