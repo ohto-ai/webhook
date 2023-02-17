@@ -17,9 +17,6 @@ jobs:
     #   with:
     #     compiler: gcc
     #     compiler-version: 9
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ inputs.debug_enabled }}
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -69,3 +66,6 @@ jobs:
         asset_name: ${{ steps.package.outputs.packageName }}_${{ matrix.os }}_${{ steps.package.outputs.tagName }}
         tag: ${{ github.ref }}
         overwrite: true
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ failure() }}
