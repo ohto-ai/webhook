@@ -39,7 +39,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.build.outputs.package_name }}
-        asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}
+        asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ steps.build.outputs.commit_hash }}
         tag: Prerelease_${{ steps.build.outputs.commit_hash }}
         overwrite: true
         prerelease: true
