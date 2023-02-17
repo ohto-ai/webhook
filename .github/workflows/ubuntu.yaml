@@ -3,6 +3,7 @@ name: Ubuntu Platform CI & Release
 on:
   push:
   pull_request:
+  workflow_dispatch:
 jobs:
   build:
     name: Build
