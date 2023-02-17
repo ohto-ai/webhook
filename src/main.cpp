@@ -128,7 +128,7 @@ int main(int argc, char **argv)
         std::string path = fmt::format("{}{}", config.listen.prefix, hook.path);
         std::string command = hook.command;
         std::string content_type = hook.result.type;
-        std::string content = hook.result.content;
+        std::string content = hook.result.content.str;
 
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
