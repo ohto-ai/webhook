@@ -14,8 +14,6 @@ private:
         VERSION_PATCH = 1,
     };
 
-
-    
 public:
     static VersionHelper &getInstance()
     {
@@ -33,5 +31,4 @@ public:
             " ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝"};
 
     const std::string Version = fmt::format("v{}.{}.{}", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-
 };
