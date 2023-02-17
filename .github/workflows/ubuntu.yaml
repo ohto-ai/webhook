@@ -32,7 +32,7 @@ jobs:
         name: ${{ steps.build.outputs.package_name }}
         path: ${{ steps.build.outputs.package_name }}
     - name: Upload Prerelease
-      if: stgithub.ref_type == 'branch' && github.ref_name == 'master'
+      if: github.ref_type == 'branch' && github.ref_name == 'master'
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
