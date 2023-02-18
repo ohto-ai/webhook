@@ -39,7 +39,6 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-
     // 判断配置文件是否存在
     if (!std::filesystem::exists(configPath))
     {
@@ -67,11 +66,11 @@ int main(int argc, char **argv)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         console_sink->set_level(spdlog::level::from_str(config.log.console_level));
 
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, true);
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, false);
         file_sink->set_level(spdlog::level::from_str(config.log.file_level));
 
         spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
-        spdlog::set_level(spdlog::level::from_str(config.log.global_level));    
+        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
         spdlog::flush_every(std::chrono::seconds(5));
     }
     catch (const spdlog::spdlog_ex &ex)
@@ -79,21 +78,30 @@ int main(int argc, char **argv)
         fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
     }
 
-
     httplib::Server server;
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
-                      { spdlog::info("Response {} {}", req.method, req.path);
-                      spdlog::info("Send {} bytes", res.body.size()); });
+                      {
+                        spdlog::info("{} {} {} {} bytes User-Agent: {}", req.remote_addr, req.method, req.path, res.body.size(), req.get_header_value("User-Agent"));
+                        for (const auto &header : req.headers)
+                        {
+                            spdlog::debug("Header: {}={}", header.first, header.second);
+                        }
+                        fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth()); });
 
-    if (!config.listen.auth.path.empty() && !config.listen.auth.username.empty() && !config.listen.auth.password.empty())
-    {
-        spdlog::info("Auth enabled: {} {} {}", config.listen.auth.path, config.listen.auth.username, config.listen.auth.password);
-        server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
-                                       {
-                                           if (!ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
-                                               return httplib::Server::HandlerResponse::Unhandled;
+    server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
+                                   {
+                                        if (req.has_header("X-Real-IP"))
+                                        {
+                                            const_cast<httplib::Request &>(req).remote_addr = req.get_header_value("X-Real-IP");
+                                        }
+
+                                        if (!config.listen.auth.path.empty()
+                                        && !config.listen.auth.username.empty()
+                                        && !config.listen.auth.password.empty()
+                                        && ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
+                                        {
                                            // verify username && password
                                            if (req.has_header("Authorization"))
                                            {
@@ -118,8 +126,9 @@ int main(int argc, char **argv)
                                            res.status = 401;
                                            res.set_header("WWW-Authenticate", "Basic realm=\"Webhook\"");
                                            res.set_content("Unauthorized", "text/plain");
-                                           return httplib::Server::HandlerResponse::Handled; });
-    }
+                                           return httplib::Server::HandlerResponse::Handled; 
+                                        }
+                                        return httplib::Server::HandlerResponse::Unhandled; });
 
     for (const auto &hook : config.hooks)
     {
@@ -129,47 +138,110 @@ int main(int argc, char **argv)
         std::string command = hook.command;
         std::string content_type = hook.result.type;
         std::string content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
+        int command_timeout = hook.command_timeout;
 
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
         auto handler = [=, &server](const httplib::Request &req, httplib::Response &res)
         {
-            spdlog::info("Hook `{}`", name);
+            spdlog::info("Trigger hook `{}`", name);
 
-            std::string command_output{};
-            if (!command.empty())
-            {
-                spdlog::info("Run `{}`", command);
-                command_output = PlatformHelper::getInstance().executeCommand(command);
-            }
+            auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(command);
             kainjow::mustache::data context;
             kainjow::mustache::data request;
             kainjow::mustache::data response;
-            
+            kainjow::mustache::data headers;
+
+            headers = kainjow::mustache::lambda{[&req](const std::string &name)
+                                                {
+                                                    return req.get_header_value(name.c_str());
+                                                }};
+
             request.set("method", req.method);
             request.set("path", req.path);
-            request.set("user_agent", req.get_header_value("User-Agent"));
             request.set("body", req.body);
+
             request.set("remote_addr", req.remote_addr);
             request.set("remote_port", std::to_string(req.remote_port));
+            request.set("header", headers);
 
             response.set("content_length", std::to_string(req.body.size()));
             response.set("content_type", content_type);
-            response.set("command_output", command_output);
+            response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
+                                                                       {
+                                                                           if (command_timeout > 0)
+                                                                           {
+                                                                               spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
+                                                                               if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                                                                               {
+                                                                                   spdlog::info("Command output received");
+                                                                                   return command_output_future.get();
+                                                                               }
+                                                                               else
+                                                                               {
+                                                                                   spdlog::warn("Command output timeout");
+                                                                                   return std::string{};
+                                                                               }
+                                                                           }
+                                                                           else
+                                                                           {
+                                                                               spdlog::info("Waiting for command output...");
+                                                                               return command_output_future.get();
+                                                                           }
+                                                                       }});
 
             context.set("name", name);
             context.set("command", command);
             context.set("app", CompilerHelper::getInstance().AppName);
             context.set("version", VersionHelper::getInstance().Version);
+            context.set("hash", CompilerHelper::getInstance().CommitHash);
             context.set("request", request);
             context.set("response", response);
-            
+            context.set("file", kainjow::mustache::lambda_t{[](const std::string &file_path, const kainjow::mustache::renderer &render)
+                                                            {
+                                                                std::ifstream ifs(file_path);
+                                                                if (!ifs.is_open())
+                                                                {
+                                                                    spdlog::error("File `{}` not found", file_path);
+                                                                    return std::string{};
+                                                                }
+                                                                std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+                                                                return content;
+                                                            }});
+            if (!hook.async_exec)
+            {
+                if (command_timeout > 0)
+                {
+                    if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                        spdlog::info("Command output received");
+                    else
+                        spdlog::warn("Command output timeout");
+                }
+                else
+                {
+                    command_output_future.wait();
+                    spdlog::info("Command output received");
+                }
+            }
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
+            if (!content_tmpl.is_valid())
+            {
+                spdlog::error("Render content failed: {}", content_tmpl.error_message());
+                res.status = 500;
+                res.set_content("Render content failed", "text/plain");
+                return;
+            }
             res.set_content(result, content_type.c_str());
-            spdlog::info("Render: \n\r{}\n", result);
-            fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth());
+            if (result.size() > 1024)
+            {
+                spdlog::debug("Render: \n\r{}...\n", result.substr(0, 1024));
+            }
+            else
+            {
+                spdlog::debug("Render: \n\r{}\n", result);
+            }
         };
         if (method == "GET")
         {

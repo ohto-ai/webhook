@@ -1,5 +1,6 @@
 #include <sstream>
-
+#include <future>
+#include <spdlog/spdlog.h>
 #if defined(_WIN32)
 #define popen _popen
 #define pclose _pclose
@@ -37,7 +38,15 @@ public:
                 display << buf_ps;
             pclose(f);
         }
+        spdlog::debug("\rExecute {}=>\n{}", cmd, display.str());
         return display.str();
+    }
+    
+    inline decltype(auto) executeCommandAsync(std::string cmd) const
+    {
+        auto shared_future =  std::async(std::launch::async, [this, cmd]() { return executeCommand(cmd); }).share();
+        std::thread([shared_future] { shared_future.wait(); }).detach();
+        return shared_future;
     }
 
     inline std::string getPlatform() const
