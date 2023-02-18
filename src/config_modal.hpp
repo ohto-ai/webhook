@@ -103,6 +103,7 @@ struct WebhookConfigModal
                     "<p>{{&response.command_output}}</p>"
                 },
             },
+            .async_exec = false,
         };
         config.hooks.push_back(demoHook);
         save(configPath, config);
