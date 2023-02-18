@@ -39,7 +39,6 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-
     // 判断配置文件是否存在
     if (!std::filesystem::exists(configPath))
     {
@@ -71,7 +70,7 @@ int main(int argc, char **argv)
         file_sink->set_level(spdlog::level::from_str(config.log.file_level));
 
         spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
-        spdlog::set_level(spdlog::level::from_str(config.log.global_level));    
+        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
         spdlog::flush_every(std::chrono::seconds(5));
     }
     catch (const spdlog::spdlog_ex &ex)
@@ -79,13 +78,18 @@ int main(int argc, char **argv)
         fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
     }
 
-
     httplib::Server server;
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
-                      { spdlog::info("Response {} {}", req.method, req.path);
-                      spdlog::info("Send {} bytes", res.body.size()); });
+                      {
+                        spdlog::info("Response {} {}", req.method, req.path);
+                        for (const auto &header : req.headers)
+                        {
+                            spdlog::info("Header: {}={}", header.first, header.second);
+                        }
+                        spdlog::info("Send {} bytes", res.body.size());
+                        fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth()); });
 
     if (!config.listen.auth.path.empty() && !config.listen.auth.username.empty() && !config.listen.auth.password.empty())
     {
@@ -145,13 +149,19 @@ int main(int argc, char **argv)
             kainjow::mustache::data context;
             kainjow::mustache::data request;
             kainjow::mustache::data response;
-            
+            kainjow::mustache::data headers;
+
+            headers = kainjow::mustache::lambda{[&req](const std::string& name){
+                return req.get_header_value(name.c_str());
+            }};
+
             request.set("method", req.method);
             request.set("path", req.path);
-            request.set("user_agent", req.get_header_value("User-Agent"));
             request.set("body", req.body);
+
             request.set("remote_addr", req.remote_addr);
             request.set("remote_port", std::to_string(req.remote_port));
+            request.set("header", headers);
 
             response.set("content_length", std::to_string(req.body.size()));
             response.set("content_type", content_type);
@@ -161,15 +171,35 @@ int main(int argc, char **argv)
             context.set("command", command);
             context.set("app", CompilerHelper::getInstance().AppName);
             context.set("version", VersionHelper::getInstance().Version);
+            context.set("hash", CompilerHelper::getInstance().CommitHash);
             context.set("request", request);
             context.set("response", response);
-            
+            context.set("file", kainjow::mustache::lambda_t{
+                [](const std::string&file_path, const kainjow::mustache::renderer& render)
+                {
+                    std::ifstream ifs(file_path);
+                    if (!ifs.is_open())
+                    {
+                        spdlog::error("File `{}` not found", file_path);
+                        return std::string{};
+                    }
+                    std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+                    return content;
+                }
+            });
+
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
             res.set_content(result, content_type.c_str());
-            spdlog::info("Render: \n\r{}\n", result);
-            fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth());
+            if(result.size() > 1024)
+            {
+                spdlog::info("Render: \n\r{}...\n", result.substr(0, 1024));
+            }
+            else
+            {
+                spdlog::info("Render: \n\r{}\n", result);
+            }
         };
         if (method == "GET")
         {
