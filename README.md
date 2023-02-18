@@ -17,12 +17,20 @@ This repository is a web hook on Linux. It is a simple web hook that can be used
 {
     "hooks": [
         {
+            "async_exec": false,
             "command": "echo -n \"Hello\"",
             "method": "GET",
             "name": "hi",
             "path": "/hi",
             "result": {
-                "content": "<h1>{{&command_output}} {{&app}}</h1>",
+                "content": [
+                    "<h1>{{&app}} {{&version}}{{#hash}}({{.}}){{/hash}}</h1>",
+                    "<p>Method: {{&request.method}}</p>",
+                    "<p>Path: {{&request.path}}</p>",
+                    "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
+                    "<p>Client: {{request.remote_addr}}</p>",
+                    "<p>{{&response.command_output}}</p>"
+                ],
                 "type": "text/html"
             }
         }

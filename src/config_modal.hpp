@@ -23,7 +23,8 @@ struct Hook
     std::string name = "";
     std::string path = "";
     Result result;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Hook, command, method, name, path, result)
+    bool async_exec = false;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Hook, command, method, name, path, result, async_exec)
 };
 
 struct Listen
@@ -94,13 +95,12 @@ struct WebhookConfigModal
             .result = {
                 .type = "text/html",
                 .content = {
-                    "<h1>{{#response}}{{&command_output}}{{/response}} {{&app}} {{&version}}</h1>",
-                    "{{#request}}",
-                    "<p>Method: {{&method}}</p>",
-                    "<p>Path: {{&path}}</p>",
-                    "<p>User-Agent: {{&user_agent}}</p>",
-                    "<p>Client: {{&remote_addr}}:{{&remote_port}}</p>",
-                    "{{/request}}",
+                    "<h1>{{&app}} {{&version}}{{#hash}}({{.}}){{/hash}}</h1>",
+                    "<p>Method: {{&request.method}}</p>",
+                    "<p>Path: {{&request.path}}</p>",
+                    "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
+                    "<p>Client: {{request.remote_addr}}</p>",
+                    "<p>{{&response.command_output}}</p>"
                 },
             },
         };

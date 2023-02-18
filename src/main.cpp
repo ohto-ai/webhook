@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         console_sink->set_level(spdlog::level::from_str(config.log.console_level));
 
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, true);
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, false);
         file_sink->set_level(spdlog::level::from_str(config.log.file_level));
 
         spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
@@ -83,21 +83,25 @@ int main(int argc, char **argv)
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
                       {
-                        spdlog::info("Response {} {}", req.method, req.path);
+                        spdlog::info("{} {} {} {} bytes User-Agent: {}", req.remote_addr, req.method, req.path, res.body.size(), req.get_header_value("User-Agent"));
                         for (const auto &header : req.headers)
                         {
-                            spdlog::info("Header: {}={}", header.first, header.second);
+                            spdlog::debug("Header: {}={}", header.first, header.second);
                         }
-                        spdlog::info("Send {} bytes", res.body.size());
                         fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth()); });
 
-    if (!config.listen.auth.path.empty() && !config.listen.auth.username.empty() && !config.listen.auth.password.empty())
-    {
-        spdlog::info("Auth enabled: {} {} {}", config.listen.auth.path, config.listen.auth.username, config.listen.auth.password);
-        server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
-                                       {
-                                           if (!ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
-                                               return httplib::Server::HandlerResponse::Unhandled;
+    server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
+                                   {
+                                        if (req.has_header("X-Real-IP"))
+                                        {
+                                            const_cast<httplib::Request &>(req).remote_addr = req.get_header_value("X-Real-IP");
+                                        }
+
+                                        if (!config.listen.auth.path.empty()
+                                        && !config.listen.auth.username.empty()
+                                        && !config.listen.auth.password.empty()
+                                        && ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
+                                        {
                                            // verify username && password
                                            if (req.has_header("Authorization"))
                                            {
@@ -122,8 +126,9 @@ int main(int argc, char **argv)
                                            res.status = 401;
                                            res.set_header("WWW-Authenticate", "Basic realm=\"Webhook\"");
                                            res.set_content("Unauthorized", "text/plain");
-                                           return httplib::Server::HandlerResponse::Handled; });
-    }
+                                           return httplib::Server::HandlerResponse::Handled; 
+                                        }
+                                        return httplib::Server::HandlerResponse::Unhandled; });
 
     for (const auto &hook : config.hooks)
     {
@@ -138,22 +143,18 @@ int main(int argc, char **argv)
 
         auto handler = [=, &server](const httplib::Request &req, httplib::Response &res)
         {
-            spdlog::info("Hook `{}`", name);
-
-            std::string command_output{};
-            if (!command.empty())
-            {
-                spdlog::info("Run `{}`", command);
-                command_output = PlatformHelper::getInstance().executeCommand(command);
-            }
+            spdlog::info("Trigger hook `{}`", name);
+            
+            auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(command);
             kainjow::mustache::data context;
             kainjow::mustache::data request;
             kainjow::mustache::data response;
             kainjow::mustache::data headers;
 
-            headers = kainjow::mustache::lambda{[&req](const std::string& name){
-                return req.get_header_value(name.c_str());
-            }};
+            headers = kainjow::mustache::lambda{[&req](const std::string &name)
+                                                {
+                                                    return req.get_header_value(name.c_str());
+                                                }};
 
             request.set("method", req.method);
             request.set("path", req.path);
@@ -165,7 +166,11 @@ int main(int argc, char **argv)
 
             response.set("content_length", std::to_string(req.body.size()));
             response.set("content_type", content_type);
-            response.set("command_output", command_output);
+            response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future](const std::string &)
+                                                            {
+                                                                spdlog::info("Waiting for command output...");
+                                                                return command_output_future.get();
+                                                            }});
 
             context.set("name", name);
             context.set("command", command);
@@ -174,31 +179,39 @@ int main(int argc, char **argv)
             context.set("hash", CompilerHelper::getInstance().CommitHash);
             context.set("request", request);
             context.set("response", response);
-            context.set("file", kainjow::mustache::lambda_t{
-                [](const std::string&file_path, const kainjow::mustache::renderer& render)
-                {
-                    std::ifstream ifs(file_path);
-                    if (!ifs.is_open())
-                    {
-                        spdlog::error("File `{}` not found", file_path);
-                        return std::string{};
-                    }
-                    std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-                    return content;
-                }
-            });
-
+            context.set("file", kainjow::mustache::lambda_t{[](const std::string &file_path, const kainjow::mustache::renderer &render)
+                                                            {
+                                                                std::ifstream ifs(file_path);
+                                                                if (!ifs.is_open())
+                                                                {
+                                                                    spdlog::error("File `{}` not found", file_path);
+                                                                    return std::string{};
+                                                                }
+                                                                std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+                                                                return content;
+                                                            }});
+            if(!hook.async_exec)
+            {
+                command_output_future.wait();
+            }
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
-            res.set_content(result, content_type.c_str());
-            if(result.size() > 1024)
+            if(!content_tmpl.is_valid())
             {
-                spdlog::info("Render: \n\r{}...\n", result.substr(0, 1024));
+                spdlog::error("Render content failed: {}", content_tmpl.error_message());
+                res.status = 500;
+                res.set_content("Render content failed", "text/plain");
+                return;
+            }
+            res.set_content(result, content_type.c_str());
+            if (result.size() > 1024)
+            {
+                spdlog::debug("Render: \n\r{}...\n", result.substr(0, 1024));
             }
             else
             {
-                spdlog::info("Render: \n\r{}\n", result);
+                spdlog::debug("Render: \n\r{}\n", result);
             }
         };
         if (method == "GET")
