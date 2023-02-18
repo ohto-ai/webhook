@@ -11,7 +11,7 @@ private:
     {
         VERSION_MAJOR = 0,
         VERSION_MINOR = 2,
-        VERSION_PATCH = 0,
+        VERSION_PATCH = 1,
     };
 
 public:
