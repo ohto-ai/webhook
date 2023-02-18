@@ -23,8 +23,9 @@ struct Hook
     std::string name = "";
     std::string path = "";
     Result result;
+    int command_timeout = 3000;
     bool async_exec = false;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Hook, command, method, name, path, result, async_exec)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Hook, command, method, name, path, result, command_timeout, async_exec)
 };
 
 struct Listen
@@ -103,6 +104,7 @@ struct WebhookConfigModal
                     "<p>{{&response.command_output}}</p>"
                 },
             },
+            .command_timeout = 3000,
             .async_exec = false,
         };
         config.hooks.push_back(demoHook);

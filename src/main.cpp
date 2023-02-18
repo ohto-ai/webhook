@@ -138,13 +138,14 @@ int main(int argc, char **argv)
         std::string command = hook.command;
         std::string content_type = hook.result.type;
         std::string content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
+        int command_timeout = hook.command_timeout;
 
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
         auto handler = [=, &server](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Trigger hook `{}`", name);
-            
+
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(command);
             kainjow::mustache::data context;
             kainjow::mustache::data request;
@@ -166,11 +167,28 @@ int main(int argc, char **argv)
 
             response.set("content_length", std::to_string(req.body.size()));
             response.set("content_type", content_type);
-            response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future](const std::string &)
-                                                            {
-                                                                spdlog::info("Waiting for command output...");
-                                                                return command_output_future.get();
-                                                            }});
+            response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
+                                                                       {
+                                                                           if (command_timeout > 0)
+                                                                           {
+                                                                               spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
+                                                                               if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                                                                               {
+                                                                                   spdlog::info("Command output received");
+                                                                                   return command_output_future.get();
+                                                                               }
+                                                                               else
+                                                                               {
+                                                                                   spdlog::warn("Command output timeout");
+                                                                                   return std::string{};
+                                                                               }
+                                                                           }
+                                                                           else
+                                                                           {
+                                                                               spdlog::info("Waiting for command output...");
+                                                                               return command_output_future.get();
+                                                                           }
+                                                                       }});
 
             context.set("name", name);
             context.set("command", command);
@@ -190,14 +208,25 @@ int main(int argc, char **argv)
                                                                 std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
                                                                 return content;
                                                             }});
-            if(!hook.async_exec)
+            if (!hook.async_exec)
             {
-                command_output_future.wait();
+                if (command_timeout > 0)
+                {
+                    if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                        spdlog::info("Command output received");
+                    else
+                        spdlog::warn("Command output timeout");
+                }
+                else
+                {
+                    command_output_future.wait();
+                    spdlog::info("Command output received");
+                }
             }
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
-            if(!content_tmpl.is_valid())
+            if (!content_tmpl.is_valid())
             {
                 spdlog::error("Render content failed: {}", content_tmpl.error_message());
                 res.status = 500;

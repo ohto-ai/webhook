@@ -19,6 +19,7 @@ This repository is a web hook on Linux. It is a simple web hook that can be used
         {
             "async_exec": false,
             "command": "echo -n \"Hello\"",
+            "command_timeout": 3000,
             "method": "GET",
             "name": "hi",
             "path": "/hi",
