@@ -208,21 +208,6 @@ int main(int argc, char **argv)
                                                                 std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
                                                                 return content;
                                                             }});
-            if (!hook.async_exec)
-            {
-                if (command_timeout > 0)
-                {
-                    if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
-                        spdlog::info("Command output received");
-                    else
-                        spdlog::warn("Command output timeout");
-                }
-                else
-                {
-                    command_output_future.wait();
-                    spdlog::info("Command output received");
-                }
-            }
             kainjow::mustache::mustache content_tmpl{content};
 
             auto result = content_tmpl.render(context);
