@@ -38,6 +38,20 @@ See [here](https://api.ohtoai.top/github/)
 | [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-20.04_v0.2.0)
 | [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-22.04_v0.2.0)
 
+## Build
+
+Ensure you have `make` and `gcc` installed.
+
+Clone the repository and build it with `make`.
+
+```bash
+git clone https://github.com/Ohto-Ai/webhook.git
+# for chinese user, you can use ghproxy
+# git clone https://ghproxy.com/https://github.com/Ohto-Ai/webhook.git
+cd webhook
+make -j8
+```
+
 ## Sample
 > hook.json
 ```json
