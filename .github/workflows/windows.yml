@@ -31,12 +31,11 @@ jobs:
         shell: cmd
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
-          qmake
           nmake
-          name="${{env.archive_name}}"
-          hash=$(git rev-parse --short HEAD)
-          echo "package_name=$name" >> $GITHUB_OUTPUT
-          echo "commit_hash=$hash" >> $GITHUB_OUTPUT
+          SET name=%env.archive_name%
+          SET hash=git rev-parse --short HEAD
+          echo package_name=%name% >> %GITHUB_OUTPUT%
+          echo commit_hash=%hash% >> %GITHUB_OUTPUT%
       # 上传artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
