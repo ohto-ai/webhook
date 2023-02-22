@@ -1,9 +1,13 @@
-# web hook
+# webhook
 
-|[![License][license:badge]](/LICENSE)|[![Issues][issues:badge]][issues]|
+|[![License][license:badge]](/LICENSE)|[![Contributors][contributors:badge]][contributors]|
 |:------|------------------------------------------------:|
-|[![Stargazers][stargazers:badge]][stargazers]|[![Pulls][pulls:badge]][pulls]|
-|[![Contributors][contributors:badge]][contributors]|[![Commit Activity][commit-activity:badge]][commit-activity]|
+|[![Issues][issues:badge]][issues]|[![Closed Issues][closed-issues:badge]][closed-issues]|
+|[![PRs][pulls:badge]][pulls]|[![Closed PRs][closed-pulls:badge]][closed-pulls]|
+|[![Stargazers][stargazers:badge]][stargazers]|[![Commit Activity][commit-activity:badge]][commit-activity]|
+
+![Top Lang][top-lang]
+
 
 ![Alt](https://repobeats.axiom.co/api/embed/f81550002329b0c0414378aebb0dbac1d17d1013.svg "Repobeats analytics image")
 
@@ -77,15 +81,21 @@ See [here](https://api.ohtoai.top/github/)
 
 [issues:badge]: https://img.shields.io/github/issues/Ohto-Ai/webhook?logo=github&style=flat-square
 [issues]: https://github.com/Ohto-Ai/webhook/issues
+[closed-issues:badge]: https://img.shields.io/github/issues-closed/Ohto-Ai/webhook?logo=github&style=flat-square
+[closed-issues]: https://github.com/Ohto-Ai/webhook/issues?q=is%3Aissue+is%3Aclosed
 
 [stargazers:badge]: https://img.shields.io/github/stars/Ohto-Ai/webhook?logo=github&style=flat-square
 [stargazers]: https://github.com/Ohto-Ai/webhook/stargazers
 
 [pulls:badge]: https://img.shields.io/github/issues-pr/Ohto-Ai/webhook?logo=github&color=0088ff&style=flat-square
 [pulls]: https://github.com/Ohto-Ai/webhook/pulls
+[closed-pulls:badge]: https://img.shields.io/github/issues-pr-closed/Ohto-Ai/webhook?logo=github&color=0088ff&style=flat-square
+[closed-pulls]: https://github.com/Ohto-Ai/webhook/pulls?q=is%3Apr+is%3Aclosed
 
 [commit-activity:badge]: https://img.shields.io/github/commit-activity/m/Ohto-Ai/webhook?logo=github&style=flat-square
 [commit-activity]: https://github.com/Ohto-Ai/webhook/pulse
 
 [contributors:badge]: https://img.shields.io/github/contributors/Ohto-Ai/webhook?logo=github&style=flat-square
 [contributors]: https://github.com/Ohto-Ai/webhook/contributors
+
+[top-lang]: https://img.shields.io/github/languages/top/Ohto-Ai/webhook?logo=github&style=flat-square
