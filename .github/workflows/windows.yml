@@ -1,0 +1,70 @@
+name: Windows CI
+on:
+  push:
+    paths:
+      - 'src/**'
+      - '.github/workflows/windows.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - '.github/workflows/windows.yml'
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        include:
+          - msvc_arch: x86
+          - msvc_arch: x64
+    env:
+      archive_name: ${{ github.event.repository.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+          fetch-depth: 1
+      # msvc编译
+      - name: Build Windows
+        id: build
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
+          qmake
+          nmake
+          name="${{env.archive_name}}"
+          hash=$(git rev-parse --short HEAD)
+          echo "package_name=$name" >> $GITHUB_OUTPUT
+          echo "commit_hash=$hash" >> $GITHUB_OUTPUT
+      # 上传artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.build.outputs.package_name }}
+          path: ${{ steps.build.outputs.package_name }}
+      - name: Upload Prerelease
+        if: github.ref_type == 'branch' && github.ref_name == 'master'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ steps.build.outputs.package_name }}
+          asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ steps.build.outputs.commit_hash }}
+          tag: Prerelease_${{ steps.build.outputs.commit_hash }}
+          overwrite: true
+          prerelease: true
+          body: |
+            This is a pre-release version of the webhook package.
+            It is not recommended to use this version in production.
+      - name: Upload Release
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ steps.build.outputs.package_name }}
+          asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}
+          tag: ${{ github.ref_name }}
+          overwrite: true
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() }}

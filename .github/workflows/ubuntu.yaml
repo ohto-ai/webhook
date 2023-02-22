@@ -2,18 +2,13 @@ name: Ubuntu Platform CI & Release
 
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
+    paths:
+      - 'src/**'
+      - '.github/workflows/ubuntu.yml'
   pull_request:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
-  workflow_dispatch:
+    paths:
+      - 'src/**'
+      - '.github/workflows/ubuntu.yml'
 jobs:
   build:
     name: Build
@@ -30,10 +25,10 @@ jobs:
     - name: Build
       id: build
       env:
-        archiveName: webhook
+        archive_name: ${{ github.event.repository.name }}
       run: |
         make -j8
-        name="${{env.archiveName}}"
+        name="${{env.archive_name}}"
         hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "commit_hash=$hash" >> $GITHUB_OUTPUT
