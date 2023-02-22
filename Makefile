@@ -1,5 +1,5 @@
-CC = g++-9
-CXXFLAGS = -std=c++17 -O3 -Iinc/ -DCPPHTTPLIB_OPENSSL_SUPPORT
+CC = g++
+CXXFLAGS = -std=c++14 -O3 -Iinc/ -DCPPHTTPLIB_OPENSSL_SUPPORT
 LDFLAGS = -lpthread  -lssl -lcrypto
 
 APPNAME = webhook

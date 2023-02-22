@@ -36,5 +36,4 @@ public:
     const char *BuildMachineFullInfo = BUILD_MACHINE_FULL_INFO;
     const char *BuildDate = __DATE__;
     const char *BuildTime = __TIME__;
-
 };

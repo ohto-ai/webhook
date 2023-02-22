@@ -5,7 +5,6 @@
 #include <spdlog/fmt/bundled/color.h>
 #include <spdlog/fmt/fmt.h>
 #include <mustache/mustache.hpp>
-#include <argparse/argparse.hpp>
 #include <fstream>
 #include <algorithm>
 #include <iterator>
@@ -19,28 +18,15 @@
 int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
-    argparse::ArgumentParser parser(CompilerHelper::getInstance().AppName, VersionHelper::getInstance().Version);
 
-    try
-    {
-        parser.parse_args(argc, argv);
-    }
-    catch (const std::runtime_error &err)
-    {
-        fmt::print(stderr, "{}\n", err.what());
-        fmt::print(stderr, "{}\n", parser.help().str());
-        std::exit(1);
-    }
-
-    fmt::print(fg(fmt::color::gold), "{}\n", fmt::join(VersionHelper::getInstance().AsciiBanner, "\n"));
+    fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
     fmt::print("Run {}.\n", CompilerHelper::getInstance().AppName);
     fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, CompilerHelper::getInstance().CommitHash, CompilerHelper::getInstance().CommitDate);
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    // 判断配置文件是否存在
-    if (!std::filesystem::exists(configPath))
+    if (!access(configPath, R_OK))
     {
         WebhookConfigModal::generate(configPath);
         fmt::print("Config file not found, generate a new one.\n");

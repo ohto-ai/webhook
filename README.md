@@ -23,6 +23,11 @@ See [here](https://api.ohtoai.top/github/)
 
 [All](https://github.com/Ohto-Ai/webhook/releases) | [Latest](https://github.com/Ohto-Ai/webhook/releases/latest)
 
+### v0.2.2
+[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-18.04_v0.2.2)
+| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-20.04_v0.2.2)
+| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-22.04_v0.2.2)
+
 ### v0.2.1
 [Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-18.04_v0.2.1)
 | [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-20.04_v0.2.1)
@@ -32,6 +37,20 @@ See [here](https://api.ohtoai.top/github/)
 [Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-18.04_v0.2.0)
 | [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-20.04_v0.2.0)
 | [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-22.04_v0.2.0)
+
+## Build
+
+Ensure you have `make` and `gcc` installed.
+
+Clone the repository and build it with `make`.
+
+```bash
+git clone https://github.com/Ohto-Ai/webhook.git
+# for chinese user, you can use ghproxy
+# git clone https://ghproxy.com/https://github.com/Ohto-Ai/webhook.git
+cd webhook
+make -j8
+```
 
 ## Sample
 > hook.json
