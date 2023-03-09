@@ -173,7 +173,7 @@ int main(int argc, char **argv)
             auto rendered_command = kainjow::mustache::mustache{command}.render(context);
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
             context.set("rendered_command", rendered_command);
-            response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
+            context.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
                                                                        {
                                                                            if (command_timeout > 0)
                                                                            {
@@ -195,7 +195,6 @@ int main(int argc, char **argv)
                                                                                return command_output_future.get();
                                                                            }
                                                                        }});
-            context.set("response", response); // re-assign
 
             kainjow::mustache::mustache content_tmpl{content};
             auto result = content_tmpl.render(context);
