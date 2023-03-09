@@ -100,7 +100,7 @@ struct WebhookConfigModal
                     "<p>Path: {{&request.path}}</p>",
                     "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
                     "<p>Client: {{request.remote_addr}}</p>",
-                    "<p>{{&response.command_output}}</p>"
+                    "<p>{{&command_output}}</p>"
                 },
             },
             .command_timeout = 8000,
