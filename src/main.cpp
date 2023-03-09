@@ -26,11 +26,20 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    if (!access(configPath, R_OK))
+    switch(access(configPath, R_OK))
     {
-        WebhookConfigModal::generate(configPath);
-        fmt::print("Config file not found, generate a new one.\n");
-        return 0;
+        case 0:
+            break;
+        case ENOENT:
+            fmt::print("Config file not found, generate a new one.\n");
+            WebhookConfigModal::generate(configPath);
+            return 0;
+        case EACCES:
+            fmt::print("Permission denied.\n");
+            return -EACCES;
+        default:
+            fmt::print("Unknown error.\n");
+            return -1;
     }
 
     fmt::print("Load config {}\n", configPath);
