@@ -26,11 +26,20 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    if (!access(configPath, R_OK))
+    switch(access(configPath, R_OK))
     {
-        WebhookConfigModal::generate(configPath);
-        fmt::print("Config file not found, generate a new one.\n");
-        return 0;
+        case 0:
+            break;
+        case ENOENT:
+            fmt::print("Config file not found, generate a new one.\n");
+            WebhookConfigModal::generate(configPath);
+            return 0;
+        case EACCES:
+            fmt::print("Permission denied.\n");
+            return -EACCES;
+        default:
+            fmt::print("Unknown error.\n");
+            return -1;
     }
 
     fmt::print("Load config {}\n", configPath);
@@ -132,7 +141,6 @@ int main(int argc, char **argv)
         {
             spdlog::info("Trigger hook `{}`", name);
 
-            auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(command);
             kainjow::mustache::data context;
             kainjow::mustache::data request;
             kainjow::mustache::data response;
@@ -153,6 +161,18 @@ int main(int argc, char **argv)
 
             response.set("content_length", std::to_string(req.body.size()));
             response.set("content_type", content_type);
+
+            context.set("name", name);
+            context.set("command", command);
+            context.set("app", CompilerHelper::getInstance().AppName);
+            context.set("version", VersionHelper::getInstance().Version);
+            context.set("hash", CompilerHelper::getInstance().CommitHash);
+            context.set("request", request);
+            context.set("response", response);
+
+            auto rendered_command = kainjow::mustache::mustache{command}.render(context);
+            auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
+            context.set("rendered_command", rendered_command);
             response.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
                                                                        {
                                                                            if (command_timeout > 0)
@@ -175,27 +195,9 @@ int main(int argc, char **argv)
                                                                                return command_output_future.get();
                                                                            }
                                                                        }});
+            context.set("response", response); // re-assign
 
-            context.set("name", name);
-            context.set("command", command);
-            context.set("app", CompilerHelper::getInstance().AppName);
-            context.set("version", VersionHelper::getInstance().Version);
-            context.set("hash", CompilerHelper::getInstance().CommitHash);
-            context.set("request", request);
-            context.set("response", response);
-            context.set("file", kainjow::mustache::lambda_t{[](const std::string &file_path, const kainjow::mustache::renderer &render)
-                                                            {
-                                                                std::ifstream ifs(file_path);
-                                                                if (!ifs.is_open())
-                                                                {
-                                                                    spdlog::error("File `{}` not found", file_path);
-                                                                    return std::string{};
-                                                                }
-                                                                std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-                                                                return content;
-                                                            }});
             kainjow::mustache::mustache content_tmpl{content};
-
             auto result = content_tmpl.render(context);
             if (!content_tmpl.is_valid())
             {
