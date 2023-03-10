@@ -26,20 +26,23 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    switch(auto ac_code = access(configPath, R_OK))
+    if (access(configPath, R_OK))
     {
-        case 0:
-            break;
-        case ENOENT:
-            fmt::print("Config file not found, generate a new one.\n");
-            WebhookConfigModal::generate(configPath);
-            return 0;
-        case EACCES:
-            fmt::print("Permission denied.\n");
-            return -EACCES;
-        default:
-            fmt::print("Unknown error, `access` return {}\n", ac_code);
-            return -ac_code;
+        switch(errno)
+        {
+            case 0:
+                break;
+            case ENOENT:
+                fmt::print("Config file not found, generate a new one({}).\n", errno);
+                WebhookConfigModal::generate(configPath);
+                return 0;
+            case EACCES:
+                fmt::print("Permission denied({}).\n", errno);
+                return errno;
+            default:
+                fmt::print("Unknown error({}).\n", errno);
+                return errno;
+        }
     }
 
     fmt::print("Load config {}\n", configPath);
