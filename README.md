@@ -23,20 +23,15 @@ See [here](https://api.ohtoai.top/github/)
 
 [All](https://github.com/Ohto-Ai/webhook/releases) | [Latest](https://github.com/Ohto-Ai/webhook/releases/latest)
 
-### v0.2.2
-[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-18.04_v0.2.2)
-| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-20.04_v0.2.2)
-| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.2/webhook_ubuntu-22.04_v0.2.2)
-
-### v0.2.1
-[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-18.04_v0.2.1)
-| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-20.04_v0.2.1)
-| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-22.04_v0.2.1)
+### v0.2.4
+[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.4/webhook_ubuntu-18.04_v0.2.4)
+| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.4/webhook_ubuntu-20.04_v0.2.4)
+| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.4/webhook_ubuntu-22.04_v0.2.4)
 
 ### v0.2.0
-[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-18.04_v0.2.0)
-| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-20.04_v0.2.0)
-| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.1/webhook_ubuntu-22.04_v0.2.0)
+[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.0/webhook_ubuntu-18.04_v0.2.0)
+| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.0/webhook_ubuntu-20.04_v0.2.0)
+| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.0/webhook_ubuntu-22.04_v0.2.0)
 
 ## Build
 
@@ -71,7 +66,7 @@ make -j8
                     "<p>Path: {{&request.path}}</p>",
                     "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
                     "<p>Client: {{request.remote_addr}}</p>",
-                    "<p>{{&response.command_output}}</p>"
+                    "<p>{{command_output}}</p>"
                 ],
                 "type": "text/html"
             }
