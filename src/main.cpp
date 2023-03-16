@@ -1,3 +1,6 @@
+#include "util/platform.h"
+#include "util/version.h"
+
 #include <cpp-httplib/httplib.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -11,9 +14,6 @@
 #include <brynet/base/crypto/Base64.hpp>
 #include "ohtoai/string_tools.hpp"
 #include "config_modal.hpp"
-#include "util/platform.hpp"
-#include "util/compiler.hpp"
-#include "util/version.hpp"
 
 int main(int argc, char **argv)
 {
@@ -21,9 +21,9 @@ int main(int argc, char **argv)
 
     fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
-    fmt::print("Run {}.\n", CompilerHelper::getInstance().AppName);
-    fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, CompilerHelper::getInstance().CommitHash, CompilerHelper::getInstance().CommitDate);
-    fmt::print("Build on {} {} {}\n", CompilerHelper::getInstance().BuildMachineInfo, CompilerHelper::getInstance().BuildDate, CompilerHelper::getInstance().BuildTime);
+    fmt::print("Run {}.\n", VersionHelper::getInstance().AppName);
+    fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
+    fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
     if (access(configPath, R_OK))
@@ -167,9 +167,9 @@ int main(int argc, char **argv)
 
             context.set("name", name);
             context.set("command", command);
-            context.set("app", CompilerHelper::getInstance().AppName);
+            context.set("app", VersionHelper::getInstance().AppName);
             context.set("version", VersionHelper::getInstance().Version);
-            context.set("hash", CompilerHelper::getInstance().CommitHash);
+            context.set("hash", VersionHelper::getInstance().CommitHash);
             context.set("request", request);
             context.set("response", response);
 

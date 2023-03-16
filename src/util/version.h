@@ -1,4 +1,8 @@
-#include <spdlog/fmt/fmt.h>
+#pragma once
+#ifndef _WEBHOOK_VERSION_H_
+#define _WEBHOOK_VERSION_H_
+
+#include <string>
 
 class VersionHelper
 {
@@ -6,14 +10,6 @@ private:
     VersionHelper() {}
     VersionHelper(const VersionHelper &) = delete;
     VersionHelper &operator=(const VersionHelper &) = delete;
-
-    enum
-    {
-        VERSION_MAJOR = 0,
-        VERSION_MINOR = 2,
-        VERSION_PATCH = 6,
-    };
-
 public:
     static VersionHelper &getInstance()
     {
@@ -30,5 +26,12 @@ public:
  ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝       ╚═╝  ╚═╝╚═╝
  )"};
 
-    const std::string Version = fmt::format("v{}.{}.{}", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    const std::string AppName = PROJECT_NAME;
+    const std::string Version = BUILD_VERSION;
+    const std::string CommitHash = COMMIT_HASH;
+    const std::string CommitDate = COMMIT_DATE;
+    const std::string BuildDate = __DATE__;
+    const std::string BuildTime = __TIME__;
 };
+
+#endif // !_WEBHOOK_VERSION_H_

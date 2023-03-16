@@ -1,9 +1,9 @@
 # VS Code
 .vscode/*
 
-# makefile
-*.d
-obj/**
+# cmake
+Makefile
+build/
 
 # config
 hook.json
