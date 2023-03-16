@@ -12,14 +12,6 @@ set(SOURCES
     src/util/platform.cpp
 )
 
-# Get the current Git hash
-execute_process(
-  COMMAND git rev-parse --short HEAD
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_COMMIT_HASH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
 # Get latest commit date
 execute_process(
   COMMAND git log -1 --format=%cd --date=short
@@ -28,34 +20,41 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# Get the latest Git tag
+# Get the current Git hash
 execute_process(
-  COMMAND git describe --abbrev=0 --tags
+  COMMAND git rev-parse --short HEAD
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_LATEST_TAG
+  OUTPUT_VARIABLE GIT_COMMIT_HASH
   OUTPUT_STRIP_TRAILING_WHITESPACE
-  ERROR_QUIET
 )
 
-# Check if the latest tag is in the current commit's history
+# Check if the latest tag is the current commit
 execute_process(
-  COMMAND git rev-list ${GIT_LATEST_TAG}..HEAD
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  RESULT_VARIABLE IS_LATEST_TAG_IN_HISTORY
-  ERROR_QUIET
+    COMMAND git describe --tags --exact-match HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    RESULT_VARIABLE GIT_DESCRIBE_RESULT
+    OUTPUT_VARIABLE GIT_LATEST_TAG
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# Set BUILD_VERSION
-if (NOT GIT_LATEST_TAG OR IS_LATEST_TAG_IN_HISTORY)
-  set(BUILD_VERSION "${GIT_COMMIT_HASH}")
+if (${GIT_DESCRIBE_RESULT} EQUAL 0)
+    # If the latest tag is the current commit, set BUILD_VERSION to the tag name
+    set(BUILD_VERSION ${GIT_LATEST_TAG})
+    set(IS_DEV_VERSION false)
+    message(STATUS "Build version: ${BUILD_VERSION}(${GIT_COMMIT_HASH})")
 else()
-  set(BUILD_VERSION "${GIT_LATEST_TAG}")
+    # If the latest tag is not the current commit, set BUILD_VERSION to the commit hash
+    set(BUILD_VERSION ${GIT_COMMIT_HASH})
+    set(IS_DEV_VERSION true)
+    message(STATUS "Build version: ${BUILD_VERSION}")
 endif()
 
 add_definitions(-DPROJECT_NAME="${PROJECT_NAME}")
 add_definitions(-DBUILD_VERSION="${BUILD_VERSION}")
 add_definitions(-DCOMMIT_HASH="${GIT_COMMIT_HASH}")
 add_definitions(-DCOMMIT_DATE="${GIT_COMMIT_DATE}")
+add_definitions(-DIS_DEV_VERSION=${IS_DEV_VERSION})
 
 # Set the output directory for the executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

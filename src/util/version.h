@@ -32,6 +32,7 @@ public:
     const std::string CommitDate = COMMIT_DATE;
     const std::string BuildDate = __DATE__;
     const std::string BuildTime = __TIME__;
+    const bool IsDevVersion = IS_DEV_VERSION;
 };
 
 #endif // !_WEBHOOK_VERSION_H_
