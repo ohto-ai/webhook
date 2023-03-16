@@ -4,7 +4,7 @@
 #define popen _popen
 #define pclose _pclose
 #define WIN32_LEAN_AND_MEAN
-#defiine NOMINMAX
+#define NOMINMAX
 #include <windows.h>
 #elif defined(__linux__)
 #include <sys/ioctl.h>

@@ -87,24 +87,24 @@ struct WebhookConfigModal
     static void generate(const std::string &configPath)
     {
         WebhookConfigModal config;
-        Hook demoHook = {
-            .command = "echo -n \"Hello\"",
-            .method = "GET",
-            .name = "hi",
-            .path = "/hi",
-            .result = {
-                .type = "text/html",
-                .content = {
+        Hook demoHook {
+            "echo -n \"Hello\"", // command
+            "GET",               // method
+            "hi",                // name
+            "/hi",               // path
+            {
+                "text/html", // type
+                {
                     "<h1>{{&app}} {{&version}}{{#hash}}({{.}}){{/hash}}</h1>",
                     "<p>Method: {{&request.method}}</p>",
                     "<p>Path: {{&request.path}}</p>",
                     "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
                     "<p>Client: {{request.remote_addr}}</p>",
-                    "<p>{{&command_output}}</p>"
-                },
-            },
-            .command_timeout = 8000,
+                    "<p>{{&command_output}}</p>"}, // content
+            },                                     // result
+            8000,                                  // command_timeout
         };
+
         config.hooks.push_back(demoHook);
         save(configPath, config);
     }
