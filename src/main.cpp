@@ -1,6 +1,12 @@
 #include "util/platform.h"
 #include "util/version.h"
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
 #include <ghc/fs_std.hpp>
 #include <cpp-httplib/httplib.h>
 #include <spdlog/spdlog.h>

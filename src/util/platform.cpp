@@ -64,8 +64,34 @@ inline std::string PlatformHelper::getCpuInfo() const
 #ifdef _WIN32
     // Windows implementation
     SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    return sysinfo.dwProcessorType;
+    GetNativeSystemInfo(&sysinfo);
+
+    std::ostringstream oss;
+    oss << "CPU Type: ";
+
+    switch (sysinfo.wProcessorArchitecture) {
+        case PROCESSOR_ARCHITECTURE_AMD64:
+            oss << "AMD64";
+            break;
+        case PROCESSOR_ARCHITECTURE_MIPS:
+            oss << "MIPS";
+            break;
+        case PROCESSOR_ARCHITECTURE_ARM:
+            oss << "ARM";
+            break;
+        case PROCESSOR_ARCHITECTURE_IA64:
+            oss << "IA64";
+            break;
+        case PROCESSOR_ARCHITECTURE_INTEL:
+            oss << "INTEL";
+            break;
+        default:
+            oss << "UNKNOWN";
+    }
+
+    oss << " " << sysinfo.dwNumberOfProcessors << " processors " << " @" << (sysinfo.dwProcessorType >> 16)
+        << "." << (sysinfo.dwProcessorType & 0xFFFF) << "GHz";
+    return oss.str();
 #elif __linux__
     // Linux implementation
     return executeCommand("cat /proc/cpuinfo | grep 'model name' | cut -d: -f2 | sed 's/^ //g' | uniq");
