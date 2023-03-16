@@ -23,10 +23,10 @@ See [here](https://api.ohtoai.top/github/)
 
 [All](https://github.com/Ohto-Ai/webhook/releases) | [Latest](https://github.com/Ohto-Ai/webhook/releases/latest)
 
-### v0.2.6
-[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.6/webhook_ubuntu-18.04_v0.2.6)
-| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.6/webhook_ubuntu-20.04_v0.2.6)
-| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.6/webhook_ubuntu-22.04_v0.2.6)
+### v0.2.7
+[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-18.04_v0.2.7)
+| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-20.04_v0.2.7)
+| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-22.04_v0.2.7)
 
 ### v0.2.0
 [Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.0/webhook_ubuntu-18.04_v0.2.0)
