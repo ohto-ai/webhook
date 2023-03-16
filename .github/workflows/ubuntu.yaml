@@ -32,8 +32,11 @@ jobs:
       env:
         archiveName: webhook
       run: |
+        mkdir -p build
+        cd build
+        cmake ..
         make -j8
-        name="${{env.archiveName}}"
+        name="build/bin/${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "commit_hash=$hash" >> $GITHUB_OUTPUT
