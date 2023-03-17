@@ -17,7 +17,7 @@ jobs:
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        GPG_KEY_ID: test
+        GPG_KEY_ID: 3EECFBF110C10E35249D812987D215C1BFD85FDB
 
     - name: Update README.md
       run: |
