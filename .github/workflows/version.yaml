@@ -2,12 +2,23 @@ name: Version Update
 on:
   release:
     types: [published]
+  workflow_dispatch:
 jobs:
   update-readme-version:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Sign Commit with GPG
+      run: |
+        echo $GPG_PRIVATE_KEY | gpg --import -
+        gpg --passphrase "$GPG_PASSPHRASE" --no-tty --batch --yes -abs -u GPG_KEY_ID -o signature.gpg "$GITHUB_ACTION"
+      env:
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        GPG_KEY_ID: test
+
     - name: Update README.md
       run: |
         sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/${{ github.ref_name }}/g" README.md
@@ -16,5 +27,9 @@ jobs:
       with:
         add: README.md
         new_branch: doc_${{ github.ref_name }}
-        message: Update Version
+        message: Update Version ${{ github.ref_name }}
         default_author: user_info
+        gpg_sign: true
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ failure() }}
