@@ -35,10 +35,20 @@ jobs:
         archiveName: ${{ github.event.repository.name }}
       shell: bash
       run: |
-        cmake -S . -B build
-        cmake --build build --config Release --target ${{env.archiveName}} -j 8
+        cmake -Bbuild
+        cmake --build build --config Release --target ${{env.archiveName}} -j8
         name="${{env.archiveName}}"
-        path="build/bin/Release/${{env.archiveName}}"
+        if [[ $(uname -s) == "Linux" ]]; then
+          path="build/bin/${{env.archiveName}}"
+        elif [[ $(uname -s) == "Darwin" ]]; then
+          path="build/bin/${{env.archiveName}}"
+        elif [[ $(uname -s) == CYGWIN* || $(uname -s) == MINGW32* || $(uname -s) == MSYS* ]]; then
+          path="build/bin/Release/${{env.archiveName}}.exe"
+        else
+          echo "This system platform "$(uname -s)" is not supported or recognized."
+          path="build/bin/${{env.archiveName}}"
+        fi
+
         hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "package_path=$path" >> $GITHUB_OUTPUT
