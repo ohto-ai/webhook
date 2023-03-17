@@ -21,13 +21,13 @@ jobs:
       run: |
         sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/${{ github.ref_name }}/g" README.md
     - name: Push to GitHub
+      if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
       uses: EndBug/add-and-commit@v9.1.1
       with:
         add: README.md
         new_branch: doc_${{ github.ref_name }}
         message: Update Version ${{ github.ref_name }}
         default_author: user_info
-        commit: --S
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ failure() }}
