@@ -38,14 +38,18 @@ jobs:
         cmake -Bbuild
         cmake --build build --config Release --target ${{env.archiveName}} -j8
         name="${{env.archiveName}}"
-        if [[ $(uname -s) == "Linux" ]]; then
+
+        if [[ "$OSTYPE" ==  "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "mingw32" ]]; then
+          echo "Build on Windows."
           path="build/bin/${{env.archiveName}}"
-        elif [[ $(uname -s) == "Darwin" ]]; then
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+          echo "Build on MacOS."
           path="build/bin/${{env.archiveName}}"
-        elif [[ $(uname -s) == CYGWIN* || $(uname -s) == MINGW32* || $(uname -s) == MSYS* ]]; then
+        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+          echo "Build on Linux."
           path="build/bin/Release/${{env.archiveName}}.exe"
         else
-          echo "This system platform "$(uname -s)" is not supported or recognized."
+          echo "This system platform is not supported or recognized. Use default path"
           path="build/bin/${{env.archiveName}}"
         fi
 
