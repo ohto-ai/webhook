@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 # Find OpenSSL Library
 if (UNIX)
+    set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl" CACHE STRING "openssl root" FORCE)
     find_package (OpenSSL REQUIRED)
 endif ()
 

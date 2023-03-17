@@ -33,10 +33,8 @@ jobs:
         archiveName: webhook
       shell: bash
       run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        cmake --build . --config Release --target ${{env.archiveName}} -j 8
+        cmake -S . -B build
+        cmake --build build --config Release --target ${{env.archiveName}} -j 8
         name="${{env.archiveName}}"
         path="build/bin/${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)
