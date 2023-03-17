@@ -15,7 +15,7 @@ jobs:
     - name: Push to GitHub
       uses: EndBug/add-and-commit@v7.2.1
       with:
-        branch: doc
+        add: README.md
+        new_branch: doc_${{ github.ref_name }}
         message: Update Version
-        pull: '--rebase'
         default_author: user_info
