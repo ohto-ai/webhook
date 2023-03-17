@@ -27,7 +27,7 @@ jobs:
     - name: Build
       id: build
       env:
-        archiveName: webhook
+        archiveName: ${{ github.repository }}
       shell: bash
       run: |
         cmake -S . -B build
