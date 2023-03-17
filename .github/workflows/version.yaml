@@ -9,16 +9,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Sign Commit with GPG
-      run: |
-        echo $GPG_PRIVATE_KEY | gpg --import -
-        gpg --passphrase "$GPG_PASSPHRASE" --no-tty --batch --yes -abs -u GPG_KEY_ID -o signature.gpg "$GITHUB_ACTION"
-      env:
-        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
+    - name: Import GPG key
+      id: import_gpg
+      uses: crazy-max/ghaction-import-gpg@v5
+      with:
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.PASSPHRASE }}
     - name: Update README.md
       run: |
         sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/${{ github.ref_name }}/g" README.md
@@ -29,7 +27,7 @@ jobs:
         new_branch: doc_${{ github.ref_name }}
         message: Update Version ${{ github.ref_name }}
         default_author: user_info
-        gpg_sign: true
+        commit: --S
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ failure() }}
