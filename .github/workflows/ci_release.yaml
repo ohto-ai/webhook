@@ -5,6 +5,7 @@ on:
     paths: &paths_common
       - '.github/workflows/ci_release.yaml'
       - 'src/*'
+      - 'inc/*'
       - 'CMakeLists.txt'
       - '*.cmake'
   pull_request:
