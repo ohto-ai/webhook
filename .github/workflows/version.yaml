@@ -11,16 +11,10 @@ jobs:
       run: |
         VERSION="${GITHUB_REF#refs/tags/v}"
         sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/v$VERSION/g" README.md 
-    - name: Commit changes
-      uses: github-actions-x/commit@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        message: "Bump version to v$VERSION in README.md"
     - name: Push to GitHub
-        uses: EndBug/add-and-commit@v7.2.1
-        with:
-          branch: master
-          message: Update Version
-          pull: '--rebase'
-          default_author: user_info
+      uses: EndBug/add-and-commit@v7.2.1
+      with:
+        branch: master
+        message: Update Version
+        pull: '--rebase'
+        default_author: user_info
