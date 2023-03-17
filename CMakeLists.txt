@@ -65,4 +65,13 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Link header-only libraries
 # target_link_libraries(webhook ${HEADER_ONLY_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME} pthread ssl crypto)
+target_link_libraries(${PROJECT_NAME} ssl crypto)
+
+if(WIN32)
+    find_package (Threads)
+    target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+else()
+    # non-windows
+    find_package (Threads REQUIRED)
+    target_link_libraries (${PROJECT_NAME} pthread)
+endif()
