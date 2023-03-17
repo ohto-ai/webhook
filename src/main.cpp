@@ -28,7 +28,6 @@ int main(int argc, char **argv)
 
     fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
-    fmt::print("Run {}.\n", VersionHelper::getInstance().AppName);
     if (VersionHelper::getInstance().IsDevVersion)
     {
         fmt::print(fg(fmt::color::red), "This is a development version, please do not use it in production environment.\n");
@@ -39,6 +38,7 @@ int main(int argc, char **argv)
         fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
     }
     fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
+    fmt::print("Run on {} | {}\n", PlatformHelper::getInstance().getPlatform() ,PlatformHelper::getInstance().getCpuInfo());
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
     if (!fs::exists(configPath))

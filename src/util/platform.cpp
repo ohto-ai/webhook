@@ -21,7 +21,7 @@ PlatformHelper &PlatformHelper::getInstance()
     return instance;
 }
 
-inline std::string PlatformHelper::executeCommand(std::string cmd) const
+std::string PlatformHelper::executeCommand(std::string cmd) const
 {
     auto f = popen(cmd.c_str(), "r");
     std::stringstream display;
@@ -46,7 +46,7 @@ std::shared_future<std::string> PlatformHelper::executeCommandAsync(std::string 
     return shared_future;
 }
 
-inline std::string PlatformHelper::getPlatform() const
+std::string PlatformHelper::getPlatform() const
 {
 // 获取运行平台
 #ifdef _WIN32
@@ -60,7 +60,7 @@ inline std::string PlatformHelper::getPlatform() const
 #endif
 }
 
-inline std::string PlatformHelper::getCpuInfo() const
+std::string PlatformHelper::getCpuInfo() const
 {
 #ifdef _WIN32
     // Windows implementation
@@ -98,10 +98,11 @@ inline std::string PlatformHelper::getCpuInfo() const
     return executeCommand("cat /proc/cpuinfo | grep 'model name' | cut -d: -f2 | sed 's/^ //g' | uniq");
 #elif __APPLE__
     // MacOS implementation
+    // Get CPU brand string
     size_t size = 128;
-    char model[size];
-    sysctlbyname("machdep.cpu.brand_string", &model, &size, NULL, 0);
-    return model;
+    char cpu_brand[128]{};
+    sysctlbyname("machdep.cpu.brand_string", &cpu_brand, &size, NULL, 0);
+    return cpu_brand;
 #endif
 }
 
