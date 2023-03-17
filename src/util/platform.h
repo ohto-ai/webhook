@@ -14,10 +14,10 @@ private:
 public:
     static PlatformHelper &getInstance();
 
-    inline std::string executeCommand(std::string cmd) const;
+    std::string executeCommand(std::string cmd) const;
     std::shared_future<std::string> executeCommandAsync(std::string cmd) const;
-    inline std::string getPlatform() const;
-    inline std::string getCpuInfo() const;
+    std::string getPlatform() const;
+    std::string getCpuInfo() const;
     int getTerminalWidth() const;
     int getTerminalHeight() const;
 };

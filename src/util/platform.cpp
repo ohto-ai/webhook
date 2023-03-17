@@ -11,6 +11,7 @@
 #include <unistd.h>
 #elif defined(__APPLE__)
 #include <sys/ioctl.h>
+#include <sys/sysctl.h>
 #include <unistd.h>
 #endif
 
@@ -20,7 +21,7 @@ PlatformHelper &PlatformHelper::getInstance()
     return instance;
 }
 
-inline std::string PlatformHelper::executeCommand(std::string cmd) const
+std::string PlatformHelper::executeCommand(std::string cmd) const
 {
     auto f = popen(cmd.c_str(), "r");
     std::stringstream display;
@@ -45,7 +46,7 @@ std::shared_future<std::string> PlatformHelper::executeCommandAsync(std::string 
     return shared_future;
 }
 
-inline std::string PlatformHelper::getPlatform() const
+std::string PlatformHelper::getPlatform() const
 {
 // 获取运行平台
 #ifdef _WIN32
@@ -59,7 +60,7 @@ inline std::string PlatformHelper::getPlatform() const
 #endif
 }
 
-inline std::string PlatformHelper::getCpuInfo() const
+std::string PlatformHelper::getCpuInfo() const
 {
 #ifdef _WIN32
     // Windows implementation
@@ -97,11 +98,11 @@ inline std::string PlatformHelper::getCpuInfo() const
     return executeCommand("cat /proc/cpuinfo | grep 'model name' | cut -d: -f2 | sed 's/^ //g' | uniq");
 #elif __APPLE__
     // MacOS implementation
-    int mib[2] = {CTL_HW, HW_MODEL};
-    char model[128];
-    systeminfo | findstr / C : "Processor" systeminfo | findstr / C : "Processor" size_t len = sizeof(model);
-    sysctl(mib, 2, &model, &len, NULL, 0);
-    return model;
+    // Get CPU brand string
+    size_t size = 128;
+    char cpu_brand[128]{};
+    sysctlbyname("machdep.cpu.brand_string", &cpu_brand, &size, NULL, 0);
+    return cpu_brand;
 #endif
 }
 

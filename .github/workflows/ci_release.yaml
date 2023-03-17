@@ -2,17 +2,13 @@ name: Cross-platform CI & Release
 
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
+    paths: &paths_common
+      - '.github/workflows/ci_release.yaml'
+      - 'src/*'
+      - 'CMakeLists.txt'
+      - '*.cmake'
   pull_request:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
+    paths: *paths_common
   workflow_dispatch:
 jobs:
   build:
@@ -20,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, windows-2019, windows-2022]
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, windows-2019, windows-2022, macos-latest]
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -33,10 +29,8 @@ jobs:
         archiveName: webhook
       shell: bash
       run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        cmake --build . --config Release --target ${{env.archiveName}} -j 8
+        cmake -S . -B build
+        cmake --build build --config Release --target ${{env.archiveName}} -j 8
         name="${{env.archiveName}}"
         path="build/bin/${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)

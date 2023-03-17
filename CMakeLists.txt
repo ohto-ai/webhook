@@ -4,13 +4,14 @@ project(webhook)
 set(CMAKE_CXX_STANDARD 14)
 
 # Find OpenSSL Library
-if (UNIX)
+if (APPLE)
+    set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl" CACHE STRING "openssl root" FORCE)
     find_package (OpenSSL REQUIRED)
 endif ()
 
 # include directories
 include_directories (inc)
-if (OPENSSL_FOUND)
+if (APPLE AND OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
 endif ()
 
@@ -77,10 +78,12 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # target_link_libraries(webhook ${HEADER_ONLY_LIBRARIES})
 
 if (UNIX)
-    if (OPENSSL_FOUND)
+    if (APPLE AND OPENSSL_FOUND)
+        message(STATUS "OpenSSL found: ${OPENSSL_VERSION}")
         target_link_libraries (${PROJECT_NAME} ${OPENSSL_LIBRARIES})
+    else()
+        target_link_libraries (${PROJECT_NAME} pthread ssl crypto)
     endif ()
-    target_link_libraries (${PROJECT_NAME} pthread ssl crypto)
 else()
     target_link_libraries (${PROJECT_NAME} ws2_32 wsock32) # For Windows
 endif()
