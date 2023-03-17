@@ -2,17 +2,13 @@ name: Cross-platform CI & Release
 
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
+    paths: &paths_common
+      - '.github/workflows/ci_release.yaml'
+      - 'src/*'
+      - 'CMakeLists.txt'
+      - '*.cmake'
   pull_request:
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
+    paths: *paths_common
   workflow_dispatch:
 jobs:
   build:
