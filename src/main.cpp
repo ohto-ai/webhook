@@ -1,6 +1,13 @@
 #include "util/platform.h"
 #include "util/version.h"
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
+#include <ghc/fs_std.hpp>
 #include <cpp-httplib/httplib.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -34,23 +41,11 @@ int main(int argc, char **argv)
     fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
-    if (access(configPath, R_OK))
+    if (!fs::exists(configPath))
     {
-        switch(errno)
-        {
-            case 0:
-                break;
-            case ENOENT:
-                fmt::print("Config file not found, generate a new one({}).\n", errno);
-                WebhookConfigModal::generate(configPath);
-                return 0;
-            case EACCES:
-                fmt::print("Permission denied({}).\n", errno);
-                return errno;
-            default:
-                fmt::print("Unknown error({}).\n", errno);
-                return errno;
-        }
+        fmt::print("Config file not found, generate a new one({}).\n", errno);
+        WebhookConfigModal::generate(configPath);
+        return 0;
     }
 
     fmt::print("Load config {}\n", configPath);
@@ -185,27 +180,27 @@ int main(int argc, char **argv)
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
             context.set("rendered_command", rendered_command);
             context.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
-                                                                       {
-                                                                           if (command_timeout > 0)
-                                                                           {
-                                                                               spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
-                                                                               if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
-                                                                               {
-                                                                                   spdlog::info("Command output received");
-                                                                                   return command_output_future.get();
-                                                                               }
-                                                                               else
-                                                                               {
-                                                                                   spdlog::warn("Command output timeout");
-                                                                                   return std::string{};
-                                                                               }
-                                                                           }
-                                                                           else
-                                                                           {
-                                                                               spdlog::info("Waiting for command output...");
-                                                                               return command_output_future.get();
-                                                                           }
-                                                                       }});
+                                                                      {
+                                                                          if (command_timeout > 0)
+                                                                          {
+                                                                              spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
+                                                                              if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                                                                              {
+                                                                                  spdlog::info("Command output received");
+                                                                                  return command_output_future.get();
+                                                                              }
+                                                                              else
+                                                                              {
+                                                                                  spdlog::warn("Command output timeout");
+                                                                                  return std::string{};
+                                                                              }
+                                                                          }
+                                                                          else
+                                                                          {
+                                                                              spdlog::info("Waiting for command output...");
+                                                                              return command_output_future.get();
+                                                                          }
+                                                                      }});
 
             kainjow::mustache::mustache content_tmpl{content};
             auto result = content_tmpl.render(context);

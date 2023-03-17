@@ -1,4 +1,4 @@
-name: Ubuntu Platform CI & Release
+name: Cross-platform CI & Release
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, windows-2019, windows-2022]
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -31,11 +31,12 @@ jobs:
       id: build
       env:
         archiveName: webhook
+      shell: bash
       run: |
         mkdir -p build
         cd build
         cmake ..
-        make -j8
+        cmake --build . --config Release --target ${{env.archiveName}} -j 8
         name="${{env.archiveName}}"
         path="build/bin/${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)
@@ -48,19 +49,6 @@ jobs:
       with:
         name: ${{ steps.build.outputs.package_name }}
         path: ${{ steps.build.outputs.package_path }}
-    # - name: Upload Prerelease
-    #   if: github.ref_type == 'branch' && github.ref_name == 'master'
-    #   uses: svenstaro/upload-release-action@v2
-    #   with:
-    #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-    #     file: ${{ steps.build.outputs.package_name }}
-    #     asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ steps.build.outputs.commit_hash }}
-    #     tag: Prerelease_${{ steps.build.outputs.commit_hash }}
-    #     overwrite: true
-    #     prerelease: true
-    #     body: |
-    #       This is a pre-release version of the webhook package.
-    #       It is not recommended to use this version in production.
     - name: Upload Release
       if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
       uses: svenstaro/upload-release-action@v2

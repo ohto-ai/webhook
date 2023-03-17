@@ -4,12 +4,3 @@
 # cmake
 Makefile
 build/
-
-# config
-hook.json
-
-#log
-*.log
-
-# exe
-webhook
