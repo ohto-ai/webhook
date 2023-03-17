@@ -69,7 +69,7 @@ add_definitions(-DCOMMIT_DATE="${GIT_COMMIT_DATE}")
 add_definitions(-DIS_DEV_VERSION=${IS_DEV_VERSION})
 
 # Set the output directory for the executable
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
