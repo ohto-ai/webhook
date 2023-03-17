@@ -2,13 +2,19 @@ name: Cross-platform CI & Release
 
 on:
   push:
-    paths: &paths_common
+    paths:
       - '.github/workflows/ci_release.yaml'
       - 'src/*'
+      - 'inc/*'
       - 'CMakeLists.txt'
       - '*.cmake'
   pull_request:
-    paths: *paths_common
+    paths:
+      - '.github/workflows/ci_release.yaml'
+      - 'src/*'
+      - 'inc/*'
+      - 'CMakeLists.txt'
+      - '*.cmake'
   workflow_dispatch:
 jobs:
   build:
@@ -26,7 +32,7 @@ jobs:
     - name: Build
       id: build
       env:
-        archiveName: webhook
+        archiveName: ${{ github.event.repository.name }}
       shell: bash
       run: |
         cmake -S . -B build
