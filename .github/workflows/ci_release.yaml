@@ -38,7 +38,7 @@ jobs:
         cmake -S . -B build
         cmake --build build --config Release --target ${{env.archiveName}} -j 8
         name="${{env.archiveName}}"
-        path="build/bin/${{env.archiveName}}"
+        path="build/bin/Release/${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "package_path=$path" >> $GITHUB_OUTPUT
