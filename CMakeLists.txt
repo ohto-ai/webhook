@@ -3,6 +3,17 @@ project(webhook)
 
 set(CMAKE_CXX_STANDARD 14)
 
+# Find OpenSSL Library
+if (UNIX)
+    find_package (OpenSSL REQUIRED)
+endif ()
+
+# include directories
+include_directories (inc)
+if (OPENSSL_FOUND)
+    include_directories (${OPENSSL_INCLUDE_DIR})
+endif ()
+
 # Add include directories
 include_directories(inc)
 
@@ -32,13 +43,13 @@ execute_process(
 execute_process(
     COMMAND git describe --tags --exact-match HEAD
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    RESULT_VARIABLE GIT_DESCRIBE_RESULT
+    RESULT_VARIABLE GIT_CHECK_COMMIT_IN_TAGS
     OUTPUT_VARIABLE GIT_LATEST_TAG
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-if (${GIT_DESCRIBE_RESULT} EQUAL 0)
+if (${GIT_CHECK_COMMIT_IN_TAGS} EQUAL 0)
     # If the latest tag is the current commit, set BUILD_VERSION to the tag name
     set(BUILD_VERSION ${GIT_LATEST_TAG})
     set(IS_DEV_VERSION false)
@@ -65,13 +76,11 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Link header-only libraries
 # target_link_libraries(webhook ${HEADER_ONLY_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME} ssl crypto)
-
-if(WIN32)
-    find_package (Threads)
-    target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+if (UNIX)
+    if (OPENSSL_FOUND)
+        target_link_libraries (${PROJECT_NAME} ${OPENSSL_LIBRARIES})
+    endif ()
+    target_link_libraries (${PROJECT_NAME} pthread ssl crypto)
 else()
-    # non-windows
-    find_package (Threads REQUIRED)
-    target_link_libraries (${PROJECT_NAME} pthread)
+    target_link_libraries (${PROJECT_NAME} ws2_32 wsock32) # For Windows
 endif()
