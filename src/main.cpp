@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     if (!fs::exists(configPath))
     {
-        fmt::print("Config file not found, generate a new one({}).\n", errno);
+        fmt::print("Config file not found, generate a new one.\n");
         WebhookConfigModal::generate(configPath);
         return 0;
     }
