@@ -79,9 +79,11 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 if (UNIX)
     if (OPENSSL_FOUND)
+        message(STATUS "OpenSSL found: ${OPENSSL_VERSION}")
         target_link_libraries (${PROJECT_NAME} ${OPENSSL_LIBRARIES})
+    else()
+        target_link_libraries (${PROJECT_NAME} pthread ssl crypto)
     endif ()
-    target_link_libraries (${PROJECT_NAME} pthread ssl crypto)
 else()
     target_link_libraries (${PROJECT_NAME} ws2_32 wsock32) # For Windows
 endif()

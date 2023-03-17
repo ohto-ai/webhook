@@ -11,6 +11,7 @@
 #include <unistd.h>
 #elif defined(__APPLE__)
 #include <sys/ioctl.h>
+#include <sys/sysctl.h>
 #include <unistd.h>
 #endif
 
@@ -97,10 +98,9 @@ inline std::string PlatformHelper::getCpuInfo() const
     return executeCommand("cat /proc/cpuinfo | grep 'model name' | cut -d: -f2 | sed 's/^ //g' | uniq");
 #elif __APPLE__
     // MacOS implementation
-    int mib[2] = {CTL_HW, HW_MODEL};
-    char model[128];
-    systeminfo | findstr / C : "Processor" systeminfo | findstr / C : "Processor" size_t len = sizeof(model);
-    sysctl(mib, 2, &model, &len, NULL, 0);
+    size_t size = 128;
+    char model[size];
+    sysctlbyname("machdep.cpu.brand_string", &model, &size, NULL, 0);
     return model;
 #endif
 }
