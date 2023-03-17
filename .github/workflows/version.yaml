@@ -1,15 +1,12 @@
 on:
   release:
     types: [published]
-
 jobs:
   update-readme-version:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    
     - name: Update README.md
       run: |
         VERSION="${GITHUB_REF#refs/tags/v}"
