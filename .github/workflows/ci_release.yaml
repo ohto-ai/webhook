@@ -41,13 +41,13 @@ jobs:
 
         if [[ "$OSTYPE" ==  "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "mingw32" ]]; then
           echo "Build on Windows."
-          path="build/bin/${{env.archiveName}}"
+          path="build/bin/Release/${{env.archiveName}}.exe"
         elif [[ "$OSTYPE" == "darwin"* ]]; then
           echo "Build on MacOS."
           path="build/bin/${{env.archiveName}}"
         elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
           echo "Build on Linux."
-          path="build/bin/Release/${{env.archiveName}}.exe"
+          path="build/bin/${{env.archiveName}}"
         else
           echo "This system platform is not supported or recognized. Use default path"
           path="build/bin/${{env.archiveName}}"
