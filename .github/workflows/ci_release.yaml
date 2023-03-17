@@ -32,7 +32,7 @@ jobs:
     - name: Build
       id: build
       env:
-        archiveName: ${{ github.repository }}
+        archiveName: ${{ github.repository_name }}
       shell: bash
       run: |
         cmake -S . -B build
