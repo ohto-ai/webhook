@@ -3,7 +3,7 @@ name: Cross-platform CI & Release
 on:
   push:
     paths: &paths_common
-      - '.github/workflows/ci_release.yaml'
+      - '.github/workflows/*'
       - 'src/*'
       - 'inc/*'
       - 'CMakeLists.txt'
