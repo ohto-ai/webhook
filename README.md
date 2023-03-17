@@ -23,15 +23,15 @@ See [here](https://api.ohtoai.top/github/)
 
 [All](https://github.com/Ohto-Ai/webhook/releases) | [Latest](https://github.com/Ohto-Ai/webhook/releases/latest)
 
-### v0.2.7
+### v0.2.8
 
-[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-18.04_v0.2.7)
-| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-20.04_v0.2.7)
-| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_ubuntu-22.04_v0.2.7)
+[Ubuntu 18.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_ubuntu-18.04_v0.2.8)
+| [Ubuntu 20.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_ubuntu-20.04_v0.2.8)
+| [Ubuntu 22.04](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_ubuntu-22.04_v0.2.8)
 
-[Windows 2019](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_windows-2019_v0.2.7)
-| [Windows 2022](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_windows-2019_v0.2.7)
-| [MacOS latest](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.7/webhook_macos-latest_v0.2.7)
+[Windows 2019](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_windows-2019_v0.2.8)
+| [Windows 2022](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_windows-2019_v0.2.8)
+| [MacOS latest](https://github.com/Ohto-Ai/webhook/releases/download/v0.2.8/webhook_macos-latest_v0.2.8)
 
 ## Build
 
