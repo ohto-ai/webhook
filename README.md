@@ -34,7 +34,9 @@ git clone https://github.com/Ohto-Ai/webhook.git
 # for chinese user, you can use ghproxy
 # git clone https://ghproxy.com/https://github.com/Ohto-Ai/webhook.git
 cd webhook
-make -j8
+
+cmake -Bbuild
+cmake --build build --config Release --target webhook -j8
 ```
 
 ## Install
