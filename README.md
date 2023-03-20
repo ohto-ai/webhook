@@ -25,9 +25,9 @@ See [here](https://api.ohtoai.top/github/)
 
 ## Build
 
-Ensure you have `make` and `gcc` installed.
+Ensure you have `cmake` and build tools installed.
 
-Clone the repository and build it with `make`.
+Clone the repository and build it with `cmake`.
 
 ```bash
 git clone https://github.com/Ohto-Ai/webhook.git
