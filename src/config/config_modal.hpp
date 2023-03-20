@@ -1,4 +1,11 @@
 #pragma once
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
 #include <nlohmann/json.hpp>
 #include <ghc/fs_std.hpp>
 #include <spdlog/fmt/fmt.h>
