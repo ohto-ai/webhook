@@ -1,5 +1,7 @@
 #include "util/platform.h"
 #include "util/version.h"
+#include "config/config_modal.hpp"
+#include "config/file_configurator.hpp"
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -15,12 +17,9 @@
 #include <spdlog/fmt/bundled/color.h>
 #include <spdlog/fmt/fmt.h>
 #include <mustache/mustache.hpp>
-#include <fstream>
 #include <algorithm>
-#include <iterator>
 #include <brynet/base/crypto/Base64.hpp>
-#include "ohtoai/string_tools.hpp"
-#include "config_modal.hpp"
+#include <fplus/fplus.hpp>
 
 int main(int argc, char **argv)
 {
@@ -48,11 +47,21 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    FileConfigurator configurator(configPath);
+
+    auto& itemListenPort = configurator.addConfigItem(nlohmann::json::json_pointer("/listen/port"));
+
+    itemListenPort.on_changed.push_back([](FileConfigurator& configurator, const ConfigItemRef::reference_t& ref) {
+        fmt::print("Config item {} changed to {}.\n", ref.to_string(), configurator.get<int>(ref));
+    });
+
     fmt::print("Load config {}\n", configPath);
+    configurator.load();
+    configurator.enterMonitorLoop();
     WebhookConfigModal config;
     try
     {
-        config = WebhookConfigModal::load(configPath);
+        config = configurator.getJson().get<WebhookConfigModal>();
     }
     catch (std::exception e)
     {
@@ -101,7 +110,7 @@ int main(int argc, char **argv)
                                         if (!config.listen.auth.path.empty()
                                         && !config.listen.auth.username.empty()
                                         && !config.listen.auth.password.empty()
-                                        && ohtoai::tool::string::start_with(req.path, config.listen.auth.path))
+                                        && fplus::is_prefix_of(config.listen.auth.path, req.path))
                                         {
                                            // verify username && password
                                            if (req.has_header("Authorization"))
@@ -134,7 +143,7 @@ int main(int argc, char **argv)
     for (const auto &hook : config.hooks)
     {
         std::string name = hook.name;
-        std::string method = ohtoai::tool::string::to_upper(hook.method);
+        std::string method = fplus::to_upper_case (hook.method);
         std::string path = fmt::format("{}{}", config.listen.prefix, hook.path);
         std::string command = hook.command;
         std::string content_type = hook.result.type;
@@ -253,5 +262,7 @@ int main(int argc, char **argv)
 
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
-    return server.listen_after_bind();
+    server.listen_after_bind();
+    configurator.exitMonitorLoop();
+    return 0;
 }
