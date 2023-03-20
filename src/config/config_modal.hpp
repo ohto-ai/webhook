@@ -1,5 +1,7 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include <ghc/fs_std.hpp>
+#include <spdlog/fmt/fmt.h>
 
 struct BasicAuth
 {
@@ -54,7 +56,7 @@ struct WebhookConfigModal
 
     static WebhookConfigModal load(const std::string &configPath)
     {
-        std::ifstream ifs(configPath);
+        fs::ifstream ifs(configPath);
         if (!ifs.is_open())
         {
             throw std::runtime_error(fmt::format("Failed to open config file: {}", configPath));
@@ -79,7 +81,7 @@ struct WebhookConfigModal
     static void save(const std::string &configPath, const WebhookConfigModal &config)
     {
         nlohmann::json configJ = config;
-        std::ofstream ofs(configPath);
+        fs::ofstream ofs(configPath);
         ofs << configJ.dump(4);
         ofs.close();
     }
