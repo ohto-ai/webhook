@@ -16,8 +16,8 @@
 #include <ghc/fs_std.hpp>
 
 class FileConfigurator;
-
-using ConfigCallback = std::function<void(FileConfigurator &, const reference_t &, const nlohmann::json& diff)>;
+using ConfigReference = nlohmann::json::json_pointer;
+using ConfigCallback = std::function<void(FileConfigurator &, const ConfigReference &, const nlohmann::json& diff)>;
 
 struct ConfigCallbackSet: public std::vector<ConfigCallback>
 {
@@ -25,7 +25,7 @@ struct ConfigCallbackSet: public std::vector<ConfigCallback>
         push_back(cb);
     }
 
-    void operator ()(FileConfigurator &fc, const reference_t &ref, const nlohmann::json& diff){
+    void operator ()(FileConfigurator &fc, const ConfigReference &ref, const nlohmann::json& diff){
         for(auto& cb: *this)
         {
             if(cb)
@@ -38,8 +38,6 @@ struct ConfigCallbackSet: public std::vector<ConfigCallback>
 
 struct ConfigItemRef
 {
-    using reference_t = nlohmann::json::json_pointer;
-    reference_t ref;
     ConfigCallbackSet on_changed;
 };
 
@@ -48,7 +46,7 @@ class FileConfigurator
 public:
     FileConfigurator(const fs::path &configPath) : configPath{configPath} {};
     FileConfigurator(const std::string &configPath) : configPath{configPath} {};
-    ConfigItemRef &addConfigItem(const ConfigItemRef::reference_t &ref)
+    ConfigItemRef &addConfigItem(const ConfigReference &ref)
     {
         configItems.emplace(ref, ConfigItemRef{ref, {}});
         return configItems.at(ref);
@@ -129,7 +127,7 @@ public:
     }
 
     template <typename T>
-    T get(const ConfigItemRef::reference_t &ref)
+    T get(const ConfigReference &ref)
     {
         return configJson.value(ref, T());
     }
@@ -147,7 +145,7 @@ public:
 private:
     fs::file_time_type lastWriteTime;
     fs::path configPath;
-    std::map<ConfigItemRef::reference_t, ConfigItemRef> configItems;
+    std::map<ConfigReference, ConfigItemRef> configItems;
     std::thread monitorThread;
     nlohmann::json configJson;
     std::atomic<bool> monitorLoopRunning{false};
