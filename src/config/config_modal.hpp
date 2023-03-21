@@ -1,14 +1,15 @@
 #pragma once
 
-#if defined(_WIN32)
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
-#include <windows.h>
+#endif
 #endif
 
 #include <nlohmann/json.hpp>
-#include <ghc/fs_std.hpp>
-#include <spdlog/fmt/fmt.h>
 
 struct BasicAuth
 {
@@ -61,39 +62,7 @@ struct WebhookConfigModal
     Log log;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WebhookConfigModal, hooks, listen, log)
 
-    static WebhookConfigModal load(const std::string &configPath)
-    {
-        fs::ifstream ifs(configPath);
-        if (!ifs.is_open())
-        {
-            throw std::runtime_error(fmt::format("Failed to open config file: {}", configPath));
-        }
-
-        WebhookConfigModal config;
-        try
-        {
-            nlohmann::json configJ;
-            ifs >> configJ;
-            configJ.get_to(config);
-        }
-        catch (std::exception e)
-        {
-            throw std::runtime_error(fmt::format("Failed to parse config file: {}", e.what()));
-        }
-
-        ifs.close();
-        return config;
-    }
-
-    static void save(const std::string &configPath, const WebhookConfigModal &config)
-    {
-        nlohmann::json configJ = config;
-        fs::ofstream ofs(configPath);
-        ofs << configJ.dump(4);
-        ofs.close();
-    }
-
-    static void generate(const std::string &configPath)
+    static WebhookConfigModal generate(const std::string &configPath)
     {
         WebhookConfigModal config;
         Hook demoHook {
@@ -115,6 +84,6 @@ struct WebhookConfigModal
         };
 
         config.hooks.push_back(demoHook);
-        save(configPath, config);
+        return config;
     }
 };
