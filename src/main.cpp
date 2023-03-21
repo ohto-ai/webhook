@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
     }
     fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
-    fmt::print("Run on {} | {}\n", PlatformHelper::getInstance().getPlatform() ,PlatformHelper::getInstance().getCpuInfo());
+    fmt::print("Run on {} | {}\n", PlatformHelper::getInstance().getPlatform(), PlatformHelper::getInstance().getCpuInfo());
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
 
     if (!fs::exists(configPath))
@@ -53,10 +53,11 @@ int main(int argc, char **argv)
     }
 
     // for test
-    auto& itemListenPort = configurator.addConfigItem(nlohmann::json::json_pointer("/listen/port"));
-    itemListenPort.on_changed += ConfigReference([](FileConfigurator& configurator, const ConfigReference& ref, const nlohmann::json& diff) {
+    using nlohmann::literals::operator"" _json_pointer;
+    configurator["/listen/port"_json_pointer].on_changed += [](FileConfigurator &configurator, const ConfigReference &ref, const nlohmann::json &diff)
+    {
         fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
-    });
+    };
 
     fmt::print("Load config {}\n", configPath);
     configurator.load();
@@ -146,7 +147,7 @@ int main(int argc, char **argv)
     for (const auto &hook : config.hooks)
     {
         std::string name = hook.name;
-        std::string method = fplus::to_upper_case (hook.method);
+        std::string method = fplus::to_upper_case(hook.method);
         std::string path = fmt::format("{}{}", config.listen.prefix, hook.path);
         std::string command = hook.command;
         std::string content_type = hook.result.type;
