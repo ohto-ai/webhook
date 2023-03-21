@@ -59,7 +59,7 @@ struct WebhookConfigModal
         fs::ifstream ifs(configPath);
         if (!ifs.is_open())
         {
-            throw std::runtime_error("Failed to open config file: " + configPath);
+            throw std::runtime_error(std::string("Failed to open config file: ") + configPath);
         }
 
         WebhookConfigModal config;
@@ -71,7 +71,7 @@ struct WebhookConfigModal
         }
         catch (std::exception e)
         {
-            throw std::runtime_error("Failed to parse config file: " + e.what());
+            throw std::runtime_error(std::string("Failed to parse config file: ") + e.what());
         }
 
         ifs.close();
