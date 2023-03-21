@@ -21,7 +21,7 @@ using ConfigCallback = std::function<void(FileConfigurator &, const ConfigRefere
 
 struct ConfigCallbackSet: public std::vector<ConfigCallback>
 {
-    ConfigCallbackSet& += (const ConfigCallback&cb){
+    ConfigCallbackSet& operator += (const ConfigCallback&cb){
         push_back(cb);
         return *this;
     }
@@ -47,9 +47,9 @@ class FileConfigurator
 public:
     FileConfigurator(const fs::path &configPath) : configPath{configPath} {};
     FileConfigurator(const std::string &configPath) : configPath{configPath} {};
-    ConfigItemRef &addConfigItem(const ConfigReference &ref)
+    ConfigItemRef &operator [](const ConfigReference &ref)
     {
-        return *configItems.emplace(ref, {}).first;
+        return configItems[ref.to_string()];
     }
 
     void load()
@@ -72,9 +72,9 @@ public:
             auto ref = nlohmann::json::json_pointer(path);
             auto &op = df_obj.at("op");
 
-            if (configItems.find(ref) != configItems.end())
+            if (configItems.find(path) != configItems.end())
             {
-                configItems.at(ref).on_changed(*this, ref, df_obj);
+                configItems.at(path).on_changed(*this, ref, df_obj);
             }
         }
     }
@@ -142,7 +142,7 @@ public:
 private:
     fs::file_time_type lastWriteTime;
     fs::path configPath;
-    std::map<ConfigReference, ConfigItemRef> configItems;
+    std::map<std::string, ConfigItemRef> configItems;
     std::thread monitorThread;
     nlohmann::json configJson;
     std::atomic<bool> monitorLoopRunning{false};
