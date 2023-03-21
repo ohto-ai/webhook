@@ -58,7 +58,7 @@ jobs:
         echo "package_path=$path" >> $GITHUB_OUTPUT
         echo "commit_hash=$hash" >> $GITHUB_OUTPUT
     - name: Upload Artifacts
-      if: github.ref_name == 'master' || github.ref_type == 'tag' 
+      if: github.ref_name == 'master' || github.ref_type == 'tag'
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.build.outputs.package_name }}

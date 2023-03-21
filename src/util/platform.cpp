@@ -134,8 +134,7 @@ int PlatformHelper::getTerminalHeight() const
 #endif
 }
 
-
-std::string PlatformHelper::getExecutablePath() {
+std::string PlatformHelper::getExecutablePath() const {
     std::string executablePath;
 
     #ifdef __linux__
@@ -159,6 +158,36 @@ std::string PlatformHelper::getExecutablePath() {
         uint32_t bufsize = sizeof(buf);
         if (_NSGetExecutablePath(buf, &bufsize) == 0) {
             executablePath = fs::canonical(buf).string();
+        }
+    #endif
+
+    return executablePath;
+}
+
+std::string PlatformHelper::getProgramDirectory() const {
+    std::string executablePath = fs::current_path().string();
+
+    #ifdef __linux__
+        char buf[PATH_MAX];
+        ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
+        if (len != -1) {
+            buf[len] = '\0';
+            executablePath = fs::canonical(buf).parent_path().string();
+        }
+    #elif defined(_WIN32)
+        HMODULE hModule = GetModuleHandle(nullptr);
+        if (hModule != nullptr) {
+            char buf[MAX_PATH];
+            DWORD len = GetModuleFileName(hModule, buf, MAX_PATH);
+            if (len > 0) {
+                executablePath = fs::canonical(buf).parent_path().string();
+            }
+        }
+    #elif defined(__APPLE__)
+        char buf[PATH_MAX];
+        uint32_t bufsize = sizeof(buf);
+        if (_NSGetExecutablePath(buf, &bufsize) == 0) {
+            executablePath = fs::canonical(buf).parent_path().string();
         }
     #endif
 

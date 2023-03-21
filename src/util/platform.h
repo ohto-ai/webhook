@@ -20,7 +20,8 @@ public:
     std::string getCpuInfo() const;
     int getTerminalWidth() const;
     int getTerminalHeight() const;
-    std::string getExecutablePath();
+    std::string getExecutablePath() const;
+    std::string getProgramDirectory() const;
 };
 
 #endif // !_WEBHOOK_PLATFORM_H_
