@@ -27,7 +27,7 @@
 int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
-    FileConfigurator configurator(fs::path(PlatformHelper::getProgramDirectory()) / configPath);
+    FileConfigurator configurator(fs::path(PlatformHelper::Instance().getProgramDirectory()) / configPath);
 
     fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
