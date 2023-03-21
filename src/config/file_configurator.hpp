@@ -16,13 +16,31 @@
 #include <ghc/fs_std.hpp>
 
 class FileConfigurator;
+
+using ConfigCallback = std::function<void(FileConfigurator &, const reference_t &, const nlohmann::json& diff)>;
+
+struct ConfigCallbackSet: public std::vector<ConfigCallback>
+{
+    ConfigCallbackSet& += (const ConfigCallback&cb){
+        push_back(cb);
+    }
+
+    void operator ()(FileConfigurator &fc, const reference_t &ref, const nlohmann::json& diff){
+        for(auto& cb: *this)
+        {
+            if(cb)
+            {
+                cb(fc, ref, diff);
+            }
+        }
+    }
+};
+
 struct ConfigItemRef
 {
     using reference_t = nlohmann::json::json_pointer;
-    using callback_t = std::function<void(FileConfigurator &, const reference_t &, const nlohmann::json& diff)>;
-    using callback_list_t = std::vector<callback_t>;
     reference_t ref;
-    callback_list_t on_changed;
+    ConfigCallbackSet on_changed;
 };
 
 class FileConfigurator
