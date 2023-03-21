@@ -23,6 +23,7 @@ struct ConfigCallbackSet: public std::vector<ConfigCallback>
 {
     ConfigCallbackSet& += (const ConfigCallback&cb){
         push_back(cb);
+        return *this;
     }
 
     void operator ()(FileConfigurator &fc, const ConfigReference &ref, const nlohmann::json& diff){
