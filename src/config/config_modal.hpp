@@ -62,7 +62,7 @@ struct WebhookConfigModal
     Log log;
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(WebhookConfigModal, hooks, listen, log)
 
-    static WebhookConfigModal generate(const std::string &configPath)
+    static WebhookConfigModal generate()
     {
         WebhookConfigModal config;
         Hook demoHook {
