@@ -28,6 +28,7 @@ struct ConfigItemRef
 class FileConfigurator
 {
 public:
+    FileConfigurator(const fs::path &configPath) : configPath{configPath} {};
     FileConfigurator(const std::string &configPath) : configPath{configPath} {};
     ConfigItemRef &addConfigItem(const ConfigItemRef::reference_t &ref)
     {
@@ -41,7 +42,7 @@ public:
         fs::ifstream ifs(configPath);
         if (!ifs.is_open())
         {
-            throw std::runtime_error("Failed to open config file: " + configPath);
+            throw std::runtime_error("Failed to open config file: " + configPath.string());
         }
         nlohmann::json configJ = configJson;
         ifs >> configJson;
@@ -75,7 +76,7 @@ public:
         fs::ofstream ofs(configPath);
         if (!ofs.is_open())
         {
-            throw std::runtime_error("Failed to open config file: " + configPath);
+            throw std::runtime_error("Failed to open config file: " + configPath.string());
         }
         ofs << configJson.dump(4);
     }
@@ -127,7 +128,7 @@ public:
 
 private:
     fs::file_time_type lastWriteTime;
-    std::string configPath;
+    fs::path configPath;
     std::map<ConfigItemRef::reference_t, ConfigItemRef> configItems;
     std::thread monitorThread;
     nlohmann::json configJson;
