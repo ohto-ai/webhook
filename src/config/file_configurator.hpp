@@ -4,7 +4,7 @@
 #include <thread>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <ghc/fs_std.hpp>
+#include <ghc/fs_std_fwd.hpp>
 
 class FileConfigurator;
 struct ConfigItemRef

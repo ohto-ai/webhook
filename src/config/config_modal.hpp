@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <ghc/fs_std.hpp>
+#include <ghc/fs_std_fwd.hpp>
 
 struct BasicAuth
 {
