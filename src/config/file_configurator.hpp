@@ -49,8 +49,7 @@ public:
     FileConfigurator(const std::string &configPath) : configPath{configPath} {};
     ConfigItemRef &addConfigItem(const ConfigReference &ref)
     {
-        configItems.emplace(ref, ConfigItemRef{ref, {}});
-        return configItems.at(ref);
+        return *configItems.emplace(ref, {}}).first;
     }
 
     void load()
