@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include <sys/sysctl.h>
 #include <unistd.h>
+#include <mach-o/dyld.h>
 #endif
 #include <ghc/fs_std.hpp>
 
