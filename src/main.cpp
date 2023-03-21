@@ -3,12 +3,6 @@
 #include "config/config_modal.hpp"
 #include "config/file_configurator.hpp"
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#endif
-
 #include <ghc/fs_std.hpp>
 #include <cpp-httplib/httplib.h>
 #include <spdlog/spdlog.h>

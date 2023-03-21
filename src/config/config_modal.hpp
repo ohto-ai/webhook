@@ -1,14 +1,7 @@
 #pragma once
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#endif
-
 #include <nlohmann/json.hpp>
 #include <ghc/fs_std.hpp>
-#include <spdlog/fmt/fmt.h>
 
 struct BasicAuth
 {
@@ -66,7 +59,7 @@ struct WebhookConfigModal
         fs::ifstream ifs(configPath);
         if (!ifs.is_open())
         {
-            throw std::runtime_error(fmt::format("Failed to open config file: {}", configPath));
+            throw std::runtime_error("Failed to open config file: " + configPath);
         }
 
         WebhookConfigModal config;
@@ -78,7 +71,7 @@ struct WebhookConfigModal
         }
         catch (std::exception e)
         {
-            throw std::runtime_error(fmt::format("Failed to parse config file: {}", e.what()));
+            throw std::runtime_error("Failed to parse config file: " + e.what());
         }
 
         ifs.close();
