@@ -74,10 +74,7 @@ public:
 
             if (configItems.find(ref) != configItems.end())
             {
-                for (auto &cb : configItems.at(ref).on_changed)
-                {
-                    cb(*this, ref, df_obj);
-                }
+                configItems.at(ref).on_changed(*this, ref, df_obj);
             }
         }
     }

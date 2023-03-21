@@ -54,9 +54,9 @@ int main(int argc, char **argv)
 
     // for test
     auto& itemListenPort = configurator.addConfigItem(nlohmann::json::json_pointer("/listen/port"));
-    itemListenPort.on_changed += [](FileConfigurator& configurator, const ConfigReference& ref, const nlohmann::json& diff) {
+    itemListenPort.on_changed += ConfigReference([](FileConfigurator& configurator, const ConfigReference& ref, const nlohmann::json& diff) {
         fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
-    };
+    });
 
     fmt::print("Load config {}\n", configPath);
     configurator.load();
