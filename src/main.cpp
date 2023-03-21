@@ -3,10 +3,13 @@
 #include "config/config_modal.hpp"
 #include "config/file_configurator.hpp"
 
-#if defined(_WIN32)
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
-#include <windows.h>
+#endif
 #endif
 
 #include <ghc/fs_std.hpp>
@@ -24,6 +27,7 @@
 int main(int argc, char **argv)
 {
     constexpr auto configPath{"hook.json"};
+    FileConfigurator configurator(configPath);
 
     fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
     fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
@@ -43,16 +47,15 @@ int main(int argc, char **argv)
     if (!fs::exists(configPath))
     {
         fmt::print("Config file not found, generate a new one.\n");
-        WebhookConfigModal::generate(configPath);
+        nlohmann::json j = WebhookConfigModal::generate();
+        configurator.assign(j);
         return 0;
     }
 
-    FileConfigurator configurator(configPath);
-
+    // for test
     auto& itemListenPort = configurator.addConfigItem(nlohmann::json::json_pointer("/listen/port"));
-
-    itemListenPort.on_changed.push_back([](FileConfigurator& configurator, const ConfigItemRef::reference_t& ref) {
-        fmt::print("Config item {} changed to {}.\n", ref.to_string(), configurator.get<int>(ref));
+    itemListenPort.on_changed.push_back([](FileConfigurator& configurator, const ConfigItemRef::reference_t& ref, const nlohmann::json& diff) {
+        fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
     });
 
     fmt::print("Load config {}\n", configPath);

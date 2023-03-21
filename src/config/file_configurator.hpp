@@ -1,3 +1,13 @@
+#pragma once
+
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#endif
 
 #include <functional>
 #include <thread>
@@ -9,7 +19,7 @@ class FileConfigurator;
 struct ConfigItemRef
 {
     using reference_t = nlohmann::json::json_pointer;
-    using callback_t = std::function<void(FileConfigurator &, const reference_t &)>;
+    using callback_t = std::function<void(FileConfigurator &, const reference_t &, const nlohmann::json& diff)>;
     using callback_list_t = std::vector<callback_t>;
     reference_t ref;
     callback_list_t on_changed;
@@ -49,11 +59,17 @@ public:
             {
                 for (auto &cb : configItems.at(ref).on_changed)
                 {
-                    cb(*this, ref);
+                    cb(*this, ref, df_obj);
                 }
             }
         }
     }
+
+    void assign(const nlohmann::json & j)
+    {
+        configJson = j;
+    }
+
     void save()
     {
         fs::ofstream ofs(configPath);
@@ -64,19 +80,19 @@ public:
         ofs << configJson.dump(4);
     }
 
-    bool enterMonitorLoop()
+    bool enterMonitorLoop(int sec = 3)
     {
         if (monitorThread.joinable())
         {
             return false;
         }
         monitorLoopRunning = true;
-        monitorThread = std::thread([this]
+        monitorThread = std::thread([this, sec]
                                     {
             while (monitorLoopRunning)
             {
-                std::this_thread::sleep_for(std::chrono::seconds(3));
-                if (fs::last_write_time(configPath) > lastWriteTime)
+                std::this_thread::sleep_for(std::chrono::seconds(sec));
+                if (fs::last_write_time(configPath) != lastWriteTime)
                 {
                     load();
                 }
@@ -102,6 +118,11 @@ public:
     const nlohmann::json & getJson() const
     {
         return configJson;
+    }
+
+    ~FileConfigurator()
+    {
+        exitMonitorLoop();
     }
 
 private:

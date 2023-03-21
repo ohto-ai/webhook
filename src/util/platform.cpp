@@ -3,8 +3,12 @@
 #if defined(_WIN32)
 #define popen _popen
 #define pclose _pclose
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #elif defined(__linux__)
 #include <sys/ioctl.h>
