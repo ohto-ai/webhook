@@ -35,9 +35,8 @@ jobs:
         archiveName: ${{ github.event.repository.name }}
       shell: bash
       run: |
-        cmake -Bbuild
+        cmake -B build
         cmake --build build --config Release --target ${{env.archiveName}} -j8
-        name="${{env.archiveName}}"
 
         if [[ "$OSTYPE" ==  "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "mingw32" ]]; then
           echo "Build on Windows."
@@ -53,6 +52,7 @@ jobs:
           path="build/bin/${{env.archiveName}}"
         fi
 
+        name="${{env.archiveName}}"
         hash=$(git rev-parse --short HEAD)
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "package_path=$path" >> $GITHUB_OUTPUT

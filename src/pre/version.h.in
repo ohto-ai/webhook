@@ -33,13 +33,13 @@ public:
 ✄─╚╝╚╝╚══╩══╩╝╚╩══╩══╩╝╚╝
  )"};
 
-    const std::string AppName = PROJECT_NAME;
-    const std::string Version = BUILD_VERSION;
-    const std::string CommitHash = COMMIT_HASH;
-    const std::string CommitDate = COMMIT_DATE;
+    const std::string AppName = "@PROJECT_NAME@";
+    const std::string Version = "@BUILD_VERSION@";
+    const std::string CommitHash = "@GIT_COMMIT_HASH@";
+    const std::string CommitDate = "@GIT_COMMIT_DATE@";
     const std::string BuildDate = __DATE__;
     const std::string BuildTime = __TIME__;
-    const bool IsDevVersion = IS_DEV_VERSION;
+    const bool IsDevVersion = @IS_DEV_VERSION@;
 };
 
 #endif // !_WEBHOOK_VERSION_H_
