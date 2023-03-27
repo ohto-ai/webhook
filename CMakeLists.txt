@@ -58,8 +58,8 @@ if(GIT_FOUND)
 endif()
 
 configure_file(
-    ${PROJECT_SOURCE_DIR}/src/pre/version.h.in
-    ${PROJECT_BINARY_DIR}/generated/inc/version.h
+    ${PROJECT_SOURCE_DIR}/src/pre/version.hpp.in
+    ${PROJECT_BINARY_DIR}/generated/inc/version.hpp
 )
 
 # Add openssl include directories
