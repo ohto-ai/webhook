@@ -21,7 +21,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <mustache/mustache.hpp>
 #include <algorithm>
-#include <brynet/base/crypto/Base64.hpp>
+#include <cppcodec/base64_default_rfc4648.hpp>
 #include <fplus/fplus.hpp>
 
 int main(int argc, char **argv)
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
                                                if (auth.find("Basic ") == 0)
                                                {
                                                    auth = auth.substr(6);
-                                                   auth = brynet::base::crypto::base64_decode(auth);
+                                                   auth = base64::encode(auth);
                                                    if (auth.find(":") != std::string::npos)
                                                    {
                                                        std::string username = auth.substr(0, auth.find(":"));
