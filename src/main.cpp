@@ -1,5 +1,5 @@
 #include "util/platform.h"
-#include "version.h"
+#include "version.hpp"
 #include "config/config_modal.hpp"
 #include "config/file_configurator.hpp"
 
