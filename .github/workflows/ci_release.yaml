@@ -57,6 +57,11 @@ jobs:
         echo "package_name=$name" >> $GITHUB_OUTPUT
         echo "package_path=$path" >> $GITHUB_OUTPUT
         echo "commit_hash=$hash" >> $GITHUB_OUTPUT
+    - name: Test
+      run: |
+        cmake --build build --config Release -j8
+        cd build/test/
+        ctest -C Release --output-on-failure
     - name: Upload Artifacts
       if: github.ref_name == 'master' || github.ref_type == 'tag'
       uses: actions/upload-artifact@v3
