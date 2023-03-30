@@ -31,6 +31,12 @@ int ohtoai::WebhookManager::exec()
     if (!doLoadConfig())
         return -1;
 
+    if (!installLoggers())
+        return -1;
+
+    if (!installHooks())
+        return -1;
+
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
@@ -225,7 +231,7 @@ bool ohtoai::WebhookManager::installHooks()
             data["/context/rendered_command"_json_pointer] = rendered_command;
 
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
-            env.add_callback("command_output", [&command_output_future, command_timeout](inja::Arguments &args) -> nlohmann::json
+            env.add_callback("command_output", 0, [&command_output_future, command_timeout](inja::Arguments &args) -> nlohmann::json
                              {
                                                                           if (command_timeout > 0)
                                                                           {
@@ -249,7 +255,7 @@ bool ohtoai::WebhookManager::installHooks()
             // add try-catch
             try
             {
-                auto result = injaEnv.render(content, data);
+                auto result = env.render(content, data);
                 res.set_content(result, content_type.c_str());
                 if (result.size() > 1024)
                 {
