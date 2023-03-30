@@ -1,8 +1,6 @@
 #include "webhook_manager.h"
 #include "util/platform.h"
 #include "version.hpp"
-#include "config/config_modal.hpp"
-#include "config/file_configurator.hpp"
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -14,7 +12,6 @@
 #endif
 
 #include <ghc/fs_std.hpp>
-#include <cpp-httplib/httplib.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -27,74 +24,14 @@
 
 int ohtoai::WebhookManager::exec()
 {
+    welcome(); // Print welcome message
 
-    FileConfigurator configurator(fs::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json");
-
-    fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
-    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
-    if (VersionHelper::getInstance().IsDevVersion)
-    {
-        fmt::print(fg(fmt::color::red), "This is a development version, please do not use it in production environment.\n");
-        fmt::print("Version {} on {}\n", VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
-    }
-    else
-    {
-        fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
-    }
-    fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
-    fmt::print("Run on {} | {}\n", PlatformHelper::getInstance().getPlatform(), PlatformHelper::getInstance().getCpuInfo());
-    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
-
-    if (!configurator.exists())
-    {
-        fmt::print("Config file not found, generate a new one.\n");
-        nlohmann::json j = WebhookConfigModal::generate();
-        configurator.assign(j);
-        configurator.save();
-        return 0;
-    }
-
-    // for test
-    using nlohmann::literals::operator"" _json_pointer;
-    configurator["/listen/port"_json_pointer].on_changed += [](FileConfigurator &configurator, const ConfigReference &ref, const nlohmann::json &diff)
-    {
-        fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
-    };
-
-    fmt::print("Load config {}\n", configurator.path());
-    configurator.load();
-    configurator.enterMonitorLoop();
-    WebhookConfigModal config;
-    try
-    {
-        config = configurator.getJson().get<WebhookConfigModal>();
-    }
-    catch (std::exception e)
-    {
-        fmt::print(stderr, "{}\n", e.what());
+    if(!serve_precondition())
         return -1;
-    }
-    fmt::print("Config loaded.\n");
 
-    // Init log
-    try
-    {
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_level(spdlog::level::from_str(config.log.console_level));
+    if(!doLoadConfig())
+        return -1;
 
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, false);
-        file_sink->set_level(spdlog::level::from_str(config.log.file_level));
-
-        spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
-        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
-        spdlog::flush_every(std::chrono::seconds(5));
-    }
-    catch (const spdlog::spdlog_ex &ex)
-    {
-        fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
-    }
-
-    httplib::Server server;
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
@@ -107,7 +44,7 @@ int ohtoai::WebhookManager::exec()
                           fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth());
                       });
 
-    server.set_pre_routing_handler([&config](const httplib::Request &req, httplib::Response &res)
+    server.set_pre_routing_handler([this](const httplib::Request &req, httplib::Response &res)
                                    {
                                        if (req.has_header("X-Real-IP"))
                                        {
@@ -145,6 +82,91 @@ int ohtoai::WebhookManager::exec()
                                        return httplib::Server::HandlerResponse::Unhandled;
                                    });
 
+    spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
+
+    return server.listen_after_bind() ? 0 : 1;
+    // ~configurator.exitMonitorLoop();
+}
+
+void ohtoai::WebhookManager::welcome() const
+{
+    fmt::print(fg(fmt::color::gold), "{}\n", VersionHelper::getInstance().AsciiBanner);
+    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
+    if (VersionHelper::getInstance().IsDevVersion)
+    {
+        fmt::print(fg(fmt::color::red), "This is a development version, please do not use it in production environment.\n");
+        fmt::print("Version {} on {}\n", VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
+    }
+    else
+    {
+        fmt::print("Version {}({}) on {}\n", VersionHelper::getInstance().Version, VersionHelper::getInstance().CommitHash, VersionHelper::getInstance().CommitDate);
+    }
+    fmt::print("Build on {} {}\n", VersionHelper::getInstance().BuildDate, VersionHelper::getInstance().BuildTime);
+    fmt::print("Run on {} | {}\n", PlatformHelper::getInstance().getPlatform(), PlatformHelper::getInstance().getCpuInfo());
+    fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", "=", PlatformHelper::getInstance().getTerminalWidth());
+}
+
+bool ohtoai::WebhookManager::serve_precondition()
+{
+    if (!configurator.exists())
+    {
+        fmt::print("Config file not found, generate a new one.\n");
+        nlohmann::json j = WebhookConfigModal::generate();
+        configurator.assign(j);
+        configurator.save();
+        return false;
+    }
+    return true;
+}
+
+bool ohtoai::WebhookManager::doLoadConfig()
+{
+    // for test
+    using nlohmann::literals::operator"" _json_pointer;
+    configurator["/listen/port"_json_pointer].on_changed += [](FileConfigurator &configurator, const ConfigReference &ref, const nlohmann::json &diff)
+    {
+        fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
+    };
+
+    fmt::print("Load config {}\n", configurator.path());
+    configurator.load();
+    configurator.enterMonitorLoop();
+    try
+    {
+        config = configurator.getJson().get<WebhookConfigModal>();
+    }
+    catch (std::exception e)
+    {
+        fmt::print(stderr, "{}\n", e.what());
+        return false;
+    }
+    fmt::print("Config loaded.\n");
+    return true;
+}
+
+bool ohtoai::WebhookManager::installLoggers()
+{
+    try
+    {
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(spdlog::level::from_str(config.log.console_level));
+
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.log.file_path, false);
+        file_sink->set_level(spdlog::level::from_str(config.log.file_level));
+
+        spdlog::set_default_logger(std::make_shared<spdlog::logger>("webhook", spdlog::sinks_init_list({console_sink, file_sink})));
+        spdlog::set_level(spdlog::level::from_str(config.log.global_level));
+        spdlog::flush_every(std::chrono::seconds(5));
+    }
+    catch (const spdlog::spdlog_ex &ex)
+    {
+        fmt::print(stderr, "Log initialization failed: {}\n", ex.what());
+    }
+    return true;
+}
+
+bool ohtoai::WebhookManager::installHooks()
+{
     for (const auto &hook : config.hooks)
     {
         std::string name = hook.name;
@@ -157,7 +179,7 @@ int ohtoai::WebhookManager::exec()
 
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
 
-        auto handler = [=, &server](const httplib::Request &req, httplib::Response &res)
+        auto handler = [=](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Trigger hook `{}`", name);
 
@@ -265,12 +287,9 @@ int ohtoai::WebhookManager::exec()
         }
     }
 
-    spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
-
-    return server.listen_after_bind() ? 0 : 1;
-    // ~configurator.exitMonitorLoop();
+    return true;
 }
 
-ohtoai::WebhookManager::WebhookManager(int argc, char **argv){}
+ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(fs::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {}
 
-ohtoai::WebhookManager::~WebhookManager(){}
+ohtoai::WebhookManager::~WebhookManager() {}
