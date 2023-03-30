@@ -25,7 +25,7 @@ TEST_CASE( "FileConfigurator can read and save file", "[FileConfigurator]" ) {
     }
 
     SECTION("load config"){
-        fs::ofstream ofs(test_config_file_name);
+        ghc::filesystem::ofstream ofs(test_config_file_name);
         ofs << test_config_json.dump(4);
         ofs.close();
         configurator.load();

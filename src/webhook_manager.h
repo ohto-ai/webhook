@@ -6,6 +6,7 @@
 #include "config/file_configurator.hpp"
 #include "config/config_modal.hpp"
 
+#include <inja/inja.hpp>
 #include <cpp-httplib/httplib.h>
 
 namespace ohtoai {
@@ -24,6 +25,7 @@ namespace ohtoai {
         FileConfigurator configurator;
         WebhookConfigModal config;
         httplib::Server server;
+        inja::Environment injaEnv;
     };
 } // namespace ohtoai
 

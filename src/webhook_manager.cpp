@@ -11,13 +11,12 @@
 #endif
 #endif
 
-#include <ghc/fs_std.hpp>
+#include <ghc/filesystem.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/fmt/bundled/color.h>
 #include <spdlog/fmt/fmt.h>
-#include <mustache/mustache.hpp>
 #include <algorithm>
 #include <cppcodec/base64_default_rfc4648.hpp>
 #include <fplus/fplus.hpp>
@@ -26,10 +25,10 @@ int ohtoai::WebhookManager::exec()
 {
     welcome(); // Print welcome message
 
-    if(!serve_precondition())
+    if (!serve_precondition())
         return -1;
 
-    if(!doLoadConfig())
+    if (!doLoadConfig())
         return -1;
 
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
@@ -41,8 +40,7 @@ int ohtoai::WebhookManager::exec()
                           {
                               spdlog::debug("Header: {}={}", header.first, header.second);
                           }
-                          fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth());
-                      });
+                          fmt::print(fg(fmt::color::green), "\r{:=^{}}\n", " Done ", PlatformHelper::getInstance().getTerminalWidth()); });
 
     server.set_pre_routing_handler([this](const httplib::Request &req, httplib::Response &res)
                                    {
@@ -79,8 +77,7 @@ int ohtoai::WebhookManager::exec()
                                            res.set_content("Unauthorized", "text/plain");
                                            return httplib::Server::HandlerResponse::Handled;
                                        }
-                                       return httplib::Server::HandlerResponse::Unhandled;
-                                   });
+                                       return httplib::Server::HandlerResponse::Unhandled; });
 
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
@@ -167,6 +164,27 @@ bool ohtoai::WebhookManager::installLoggers()
 
 bool ohtoai::WebhookManager::installHooks()
 {
+    using nlohmann::literals::operator"" _json_pointer;
+    injaEnv.add_void_callback("info", [](inja::Arguments &args)
+                              {
+        std::vector<std::string> result(args.size());
+        std::transform(args.begin(), args.end(), result.begin(),
+                [](const nlohmann::json* j) { return j->get<std::string>(); });
+        spdlog::info("{}", fmt::join(result, " ")); });
+    injaEnv.add_void_callback("warn", [](inja::Arguments &args)
+                              {
+        std::vector<std::string> result(args.size());
+        std::transform(args.begin(), args.end(), result.begin(),
+                [](const nlohmann::json* j) { return j->get<std::string>(); });
+        spdlog::warn("{}", fmt::join(result, " ")); });
+
+    injaEnv.add_void_callback("error", [](inja::Arguments &args)
+                              {
+        std::vector<std::string> result(args.size());
+        std::transform(args.begin(), args.end(), result.begin(),
+                [](const nlohmann::json* j) { return j->get<std::string>(); });
+        spdlog::error("{}", fmt::join(result, " ")); });
+
     for (const auto &hook : config.hooks)
     {
         std::string name = hook.name;
@@ -183,40 +201,32 @@ bool ohtoai::WebhookManager::installHooks()
         {
             spdlog::info("Trigger hook `{}`", name);
 
-            kainjow::mustache::data context;
-            kainjow::mustache::data request;
-            kainjow::mustache::data response;
-            kainjow::mustache::data headers;
+            auto env = injaEnv;
+            nlohmann::json data;
 
-            headers = kainjow::mustache::lambda{[&req](const std::string &name)
-                                                {
-                                                    return req.get_header_value(name.c_str());
-                                                }};
+            data["/context/name"_json_pointer] = name;
+            data["/context/command"_json_pointer] = command;
+            data["/context/app"_json_pointer] = VersionHelper::getInstance().AppName;
+            data["/context/version"_json_pointer] = VersionHelper::getInstance().Version;
+            data["/context/commit_hash"_json_pointer] = VersionHelper::getInstance().CommitHash;
+            data["/context/commit_date"_json_pointer] = VersionHelper::getInstance().CommitDate;
+            data["/context/build_date"_json_pointer] = VersionHelper::getInstance().BuildDate;
+            data["/context/build_time"_json_pointer] = VersionHelper::getInstance().BuildTime;
+            data["/context/platform"_json_pointer] = PlatformHelper::getInstance().getPlatform();
+            data["/request/method"_json_pointer] = req.method;
+            data["/request/path"_json_pointer] = req.path;
+            data["/request/body"_json_pointer] = req.body;
+            data["/request/remote_addr"_json_pointer] = req.remote_addr;
+            data["/request/remote_port"_json_pointer] = req.remote_port;
+            for (const auto &[key, value] : req.headers)
+                data["/request/header"_json_pointer][key] = value;
+            data["/request/content_length"_json_pointer] = req.body.size();
+            auto rendered_command = env.render(command, data);
+            data["/context/rendered_command"_json_pointer] = rendered_command;
 
-            request.set("method", req.method);
-            request.set("path", req.path);
-            request.set("body", req.body);
-
-            request.set("remote_addr", req.remote_addr);
-            request.set("remote_port", std::to_string(req.remote_port));
-            request.set("header", headers);
-
-            response.set("content_length", std::to_string(req.body.size()));
-            response.set("content_type", content_type);
-
-            context.set("name", name);
-            context.set("command", command);
-            context.set("app", VersionHelper::getInstance().AppName);
-            context.set("version", VersionHelper::getInstance().Version);
-            context.set("hash", VersionHelper::getInstance().CommitHash);
-            context.set("request", request);
-            context.set("response", response);
-
-            auto rendered_command = kainjow::mustache::mustache{command}.render(context);
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
-            context.set("rendered_command", rendered_command);
-            context.set("command_output", kainjow::mustache::lambda_t{[&command_output_future, command_timeout](const std::string &)
-                                                                      {
+            env.add_callback("command_output", [&command_output_future, command_timeout](inja::Arguments &args) -> nlohmann::json
+                             {
                                                                           if (command_timeout > 0)
                                                                           {
                                                                               spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
@@ -235,26 +245,27 @@ bool ohtoai::WebhookManager::installHooks()
                                                                           {
                                                                               spdlog::info("Waiting for command output...");
                                                                               return command_output_future.get();
-                                                                          }
-                                                                      }});
-
-            kainjow::mustache::mustache content_tmpl{content};
-            auto result = content_tmpl.render(context);
-            if (!content_tmpl.is_valid())
+                                                                          } });
+            // add try-catch
+            try
             {
-                spdlog::error("Render content failed: {}", content_tmpl.error_message());
+                auto result = injaEnv.render(content, data);
+                res.set_content(result, content_type.c_str());
+                if (result.size() > 1024)
+                {
+                    spdlog::debug("Render: \n\r{}...\n", result.substr(0, 1024));
+                }
+                else
+                {
+                    spdlog::debug("Render: \n\r{}\n", result);
+                }
+            }
+            catch (const std::exception &e)
+            {
+                spdlog::error("Render content failed: {}", e.what());
                 res.status = 500;
                 res.set_content("Render content failed", "text/plain");
                 return;
-            }
-            res.set_content(result, content_type.c_str());
-            if (result.size() > 1024)
-            {
-                spdlog::debug("Render: \n\r{}...\n", result.substr(0, 1024));
-            }
-            else
-            {
-                spdlog::debug("Render: \n\r{}\n", result);
             }
         };
         if (method == "GET")
@@ -290,6 +301,6 @@ bool ohtoai::WebhookManager::installHooks()
     return true;
 }
 
-ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(fs::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {}
+ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {}
 
 ohtoai::WebhookManager::~WebhookManager() {}
