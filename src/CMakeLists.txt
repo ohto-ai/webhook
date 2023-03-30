@@ -79,7 +79,7 @@ set(SOURCES
 )
 
 # Set the output directory for the executable
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin/$<CONFIG>)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
