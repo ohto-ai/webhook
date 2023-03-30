@@ -14,7 +14,7 @@
 #include <map>
 #include <atomic>
 #include <nlohmann/json.hpp>
-#include <ghc/fs_std.hpp>
+#include <ghc/filesystem.hpp>
 
 class FileConfigurator;
 using ConfigReference = nlohmann::json::json_pointer;
@@ -46,7 +46,7 @@ struct ConfigItemRef
 class FileConfigurator
 {
 public:
-    FileConfigurator(const fs::path &configPath) : configPath{configPath} {};
+    FileConfigurator(const ghc::filesystem::path &configPath) : configPath{configPath} {};
     FileConfigurator(const std::string &configPath) : configPath{configPath} {};
     ConfigItemRef &operator [](const ConfigReference &ref)
     {
@@ -55,7 +55,7 @@ public:
 
     bool exists() const
     {
-        return fs::exists(configPath);
+        return ghc::filesystem::exists(configPath);
     }
 
     decltype(auto) filename() const
@@ -70,8 +70,8 @@ public:
 
     void load()
     {
-        lastWriteTime = fs::last_write_time(configPath);
-        fs::ifstream ifs(configPath);
+        lastWriteTime = ghc::filesystem::last_write_time(configPath);
+        ghc::filesystem::ifstream ifs(configPath);
         if (!ifs.is_open())
         {
             throw std::runtime_error("Failed to open config file: " + configPath.string());
@@ -102,7 +102,7 @@ public:
 
     void save()
     {
-        fs::ofstream ofs(configPath);
+        ghc::filesystem::ofstream ofs(configPath);
         if (!ofs.is_open())
         {
             throw std::runtime_error("Failed to open config file: " + configPath.string());
@@ -122,7 +122,7 @@ public:
             while (monitorLoopRunning)
             {
                 std::this_thread::sleep_for(std::chrono::seconds(sec));
-                if (fs::last_write_time(configPath) != lastWriteTime)
+                if (ghc::filesystem::last_write_time(configPath) != lastWriteTime)
                 {
                     load();
                 }
@@ -156,8 +156,8 @@ public:
     }
 
 private:
-    fs::file_time_type lastWriteTime;
-    fs::path configPath;
+    ghc::filesystem::file_time_type lastWriteTime;
+    ghc::filesystem::path configPath;
     std::map<std::string, ConfigItemRef> configItems;
     std::thread monitorThread;
     nlohmann::json configJson;

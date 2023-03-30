@@ -13,6 +13,7 @@
 #elif defined(__linux__)
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <limits.h>
 #elif defined(__APPLE__)
 #include <sys/ioctl.h>
 #include <sys/sysctl.h>
