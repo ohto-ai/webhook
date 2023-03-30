@@ -52,6 +52,21 @@ public:
         return configItems[ref.to_string()];
     }
 
+    bool exists() const
+    {
+        return fs::exists(configPath);
+    }
+
+    decltype(auto) filename() const
+    {
+        return configPath.filename().string();
+    }
+
+    decltype(auto) path() const
+    {
+        return configPath.string();
+    }
+
     void load()
     {
         lastWriteTime = fs::last_write_time(configPath);

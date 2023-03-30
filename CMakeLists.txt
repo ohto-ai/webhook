@@ -74,6 +74,7 @@ include_directories(${PROJECT_BINARY_DIR}/generated/inc)
 # Add source files
 set(SOURCES
     src/main.cpp
+    src/webhook_manager.cpp
     src/util/platform.cpp
 )
 
