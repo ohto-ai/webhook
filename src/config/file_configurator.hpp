@@ -12,6 +12,7 @@
 #include <functional>
 #include <thread>
 #include <map>
+#include <atomic>
 #include <nlohmann/json.hpp>
 #include <ghc/fs_std.hpp>
 
