@@ -22,6 +22,8 @@ namespace ohtoai {
         bool installLoggers();
         bool installHooks();
 
+        nlohmann::json && fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res);
+
         httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res);
     private:
         FileConfigurator configurator;

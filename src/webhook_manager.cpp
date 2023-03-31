@@ -133,52 +133,13 @@ bool ohtoai::WebhookManager::installHooks()
         auto path = fmt::format("{}{}", config.listen.prefix, hook.path);
         auto content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", hook.name, hook.method, path, hook.command);
-        auto handler = [&, content](const httplib::Request &req, httplib::Response &res)
+        auto handler = [&hook, content](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Trigger hook `{}`", hook.name);
 
             auto env = injaEnv;
-            auto data = basic_render_data;
+            auto data = fillEnv(hook, req, res);
 
-            data["/context/name"_json_pointer] = hook.name;
-            data["/context/command"_json_pointer] = hook.command;
-            data["/request/method"_json_pointer] = req.method;
-            data["/request/path"_json_pointer] = req.path;
-            data["/request/body"_json_pointer] = req.body;
-            data["/request/remote_addr"_json_pointer] = req.remote_addr;
-            data["/request/remote_port"_json_pointer] = req.remote_port;
-            for (const auto &[key, value] : req.headers)
-                data["/request/header"_json_pointer][key] = value;
-            data["/request/content_length"_json_pointer] = req.body.size();
-            auto rendered_command = env.render(hook.command, data);
-            data["/context/rendered_command"_json_pointer] = rendered_command;
-
-            auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
-            env.add_callback("command_output", 0, [&](inja::Arguments &args) -> nlohmann::json
-                {
-                if (hook.command_timeout > 0)
-                {
-                    if(command_output_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
-                    {
-                        spdlog::info("Waiting for command output... (timeout: {}ms)", hook.command_timeout);
-                    }
-                    if (command_output_future.wait_for(std::chrono::milliseconds(hook.command_timeout)) == std::future_status::ready)
-                    {
-                        spdlog::info("Command output received");
-                        return command_output_future.get();
-                    }
-                    else
-                    {
-                        spdlog::warn("Command output timeout");
-                        return std::string{};
-                    }
-                }
-                else
-                {
-                    spdlog::info("Waiting for command output...");
-                    return command_output_future.get();
-                } });
-            // add try-catch
             try
             {
                 auto result = env.render(content, data);
@@ -251,6 +212,51 @@ httplib::Server::HandlerResponse ohtoai::WebhookManager::authRoutingHandler(cons
         return httplib::Server::HandlerResponse::Handled;
     }
     return httplib::Server::HandlerResponse::Unhandled; 
+}
+
+nlohmann::json && ohtoai::WebhookManager::fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res)
+{
+    auto data = basic_render_data;
+
+    data["/context/name"_json_pointer] = hook.name;
+    data["/context/command"_json_pointer] = hook.command;
+    data["/request/method"_json_pointer] = req.method;
+    data["/request/path"_json_pointer] = req.path;
+    data["/request/body"_json_pointer] = req.body;
+    data["/request/remote_addr"_json_pointer] = req.remote_addr;
+    data["/request/remote_port"_json_pointer] = req.remote_port;
+    for (const auto &[key, value] : req.headers)
+        data["/request/header"_json_pointer][key] = value;
+    data["/request/content_length"_json_pointer] = req.body.size();
+    auto rendered_command = env.render(hook.command, data);
+    data["/context/rendered_command"_json_pointer] = rendered_command;
+
+    auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
+    env.add_callback("command_output", 0, [&](inja::Arguments &args) -> nlohmann::json
+        {
+        if (hook.command_timeout > 0)
+        {
+            if(command_output_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
+            {
+                spdlog::info("Waiting for command output... (timeout: {}ms)", hook.command_timeout);
+            }
+            if (command_output_future.wait_for(std::chrono::milliseconds(hook.command_timeout)) == std::future_status::ready)
+            {
+                spdlog::info("Command output received");
+                return command_output_future.get();
+            }
+            else
+            {
+                spdlog::warn("Command output timeout");
+                return std::string{};
+            }
+        }
+        else
+        {
+            spdlog::info("Waiting for command output...");
+            return command_output_future.get();
+        } });
+    return std::move(data);
 }
 
 ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {
