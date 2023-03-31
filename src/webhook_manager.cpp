@@ -130,9 +130,10 @@ bool ohtoai::WebhookManager::installHooks()
 
     for (const auto &hook : config.hooks)
     {
-        spdlog::info("Bind `{}` {} {} hook, with command `{}`", hook.name, hook.method, fmt::format("{}{}", config.listen.prefix, hook.path), hook.command);
-
-        auto handler = [&](const httplib::Request &req, httplib::Response &res)
+        auto path = fmt::format("{}{}", config.listen.prefix, hook.path);
+        auto content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
+        spdlog::info("Bind `{}` {} {} hook, with command `{}`", hook.name, hook.method, path, hook.command);
+        auto handler = [&, content](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Trigger hook `{}`", hook.name);
 
@@ -195,20 +196,20 @@ bool ohtoai::WebhookManager::installHooks()
                 return;
             }
         };
-        if (method == "GET")
+        if (hook.method == "GET")
             server.Get(path.c_str(), handler);
-        else if (method == "POST")
+        else if (hook.method == "POST")
             server.Post(path.c_str(), handler);
-        else if (method == "Delete")
+        else if (hook.method == "Delete")
             server.Delete(path.c_str(), handler);
-        else if (method == "Put")
+        else if (hook.method == "Put")
             server.Put(path.c_str(), handler);
-        else if (method == "Options")
+        else if (hook.method == "Options")
             server.Options(path.c_str(), handler);
-        else if (method == "Patch")
+        else if (hook.method == "Patch")
             server.Patch(path.c_str(), handler);
         else
-            spdlog::error("Illegal method: {}", method);
+            spdlog::error("Illegal method: {}", hook.method);
     }
 
     return true;
