@@ -29,8 +29,9 @@ namespace ohtoai {
         FileConfigurator configurator;
         WebhookConfigModal config;
         httplib::Server server;
-        inja::Environment injaEnv;
+        inja::Environment inja_env;
         nlohmann::json basic_render_data;
+        httplib::Headers default_headers;
     };
 } // namespace ohtoai
 
