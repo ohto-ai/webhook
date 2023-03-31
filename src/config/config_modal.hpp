@@ -67,7 +67,7 @@ struct WebhookConfigModal
                     "<h1>{{context.app}} {{context.version}}{{context.commit_hash}}</h1>",
                     "<p>Method: {{request.method}}</p>",
                     "<p>Path: {{request.path}}</p>",
-                    "<p>User-Agent: {{request.header.User-Agent}}</p>",
+                    "<p>User-Agent: {{request.header.user-agent}}</p>",
                     "<p>Client: {{request.remote_addr}}</p>",
                     "<p>{{command_output}}</p>"}, // content
             },                                     // result
