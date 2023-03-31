@@ -209,7 +209,7 @@ httplib::Server::HandlerResponse ohtoai::WebhookManager::authRoutingHandler(cons
 
 std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res)
 {
-    auto env = injaEnv;
+    auto env = inja_env;
     auto data = basic_render_data;
 
     data["/context/name"_json_pointer] = hook.name;
@@ -263,25 +263,28 @@ ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc
     basic_render_data["/context/build_time"_json_pointer] = VersionHelper::getInstance().BuildTime;
     basic_render_data["/context/platform"_json_pointer] = PlatformHelper::getInstance().getPlatform();
 
-    injaEnv.add_void_callback("info", [](inja::Arguments &args)
+    inja_env.add_void_callback("info", [](inja::Arguments &args)
                               {
         std::vector<std::string> result(args.size());
         std::transform(args.begin(), args.end(), result.begin(),
                 [](const nlohmann::json* j) { return j->get<std::string>(); });
         spdlog::info("{}", fmt::join(result, " ")); });
-    injaEnv.add_void_callback("warn", [](inja::Arguments &args)
+    inja_env.add_void_callback("warn", [](inja::Arguments &args)
                               {
         std::vector<std::string> result(args.size());
         std::transform(args.begin(), args.end(), result.begin(),
                 [](const nlohmann::json* j) { return j->get<std::string>(); });
         spdlog::warn("{}", fmt::join(result, " ")); });
 
-    injaEnv.add_void_callback("error", [](inja::Arguments &args)
+    inja_env.add_void_callback("error", [](inja::Arguments &args)
                               {
         std::vector<std::string> result(args.size());
         std::transform(args.begin(), args.end(), result.begin(),
                 [](const nlohmann::json* j) { return j->get<std::string>(); });
         spdlog::error("{}", fmt::join(result, " ")); });
+
+    default_headers.emplace("Server", fmt::format("{} {}", VersionHelper::getInstance().AppName, VersionHelper::getInstance().Version));
+    server.set_default_headers(default_headers);
 }
 
 ohtoai::WebhookManager::~WebhookManager() {}
