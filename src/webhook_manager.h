@@ -21,11 +21,14 @@ namespace ohtoai {
         bool doLoadConfig();
         bool installLoggers();
         bool installHooks();
+
+        httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res);
     private:
         FileConfigurator configurator;
         WebhookConfigModal config;
         httplib::Server server;
         inja::Environment injaEnv;
+        nlohmann::json basic_render_data;
     };
 } // namespace ohtoai
 
