@@ -16,16 +16,10 @@ int ohtoai::WebhookManager::exec()
 {
     welcome(); // Print welcome message
 
-    if (!serve_precondition())
-        return -1;
-
-    if (!doLoadConfig())
-        return -1;
-
-    if (!installLoggers())
-        return -1;
-
-    if (!installHooks())
+    if (!serve_precondition()
+        || !doLoadConfig()
+        || !installLoggers()
+        || !installHooks())
         return -1;
 
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
@@ -133,12 +127,11 @@ bool ohtoai::WebhookManager::installHooks()
         auto path = fmt::format("{}{}", config.listen.prefix, hook.path);
         auto content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
         spdlog::info("Bind `{}` {} {} hook, with command `{}`", hook.name, hook.method, path, hook.command);
-        auto handler = [&hook, content](const httplib::Request &req, httplib::Response &res)
+        auto handler = [&hook, content, this](const httplib::Request &req, httplib::Response &res)
         {
             spdlog::info("Trigger hook `{}`", hook.name);
 
-            auto env = injaEnv;
-            auto data = fillEnv(hook, req, res);
+            auto [env, data] = fillEnv(hook, req, res);
 
             try
             {
@@ -214,8 +207,9 @@ httplib::Server::HandlerResponse ohtoai::WebhookManager::authRoutingHandler(cons
     return httplib::Server::HandlerResponse::Unhandled; 
 }
 
-nlohmann::json && ohtoai::WebhookManager::fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res)
+std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res)
 {
+    auto env = injaEnv;
     auto data = basic_render_data;
 
     data["/context/name"_json_pointer] = hook.name;
@@ -256,7 +250,7 @@ nlohmann::json && ohtoai::WebhookManager::fillEnv(const Hook& hook, const httpli
             spdlog::info("Waiting for command output...");
             return command_output_future.get();
         } });
-    return std::move(data);
+    return {std::move(env), std::move(data)};
 }
 
 ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {
