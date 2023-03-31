@@ -65,7 +65,7 @@ bool ohtoai::WebhookManager::serve_precondition()
     {
         fmt::print("Config file not found, generate a new one.\n");
         nlohmann::json j = WebhookConfigModal::generate();
-        configurator.assign(j);
+        configurator = j;
         configurator.save();
         return false;
     }
@@ -74,19 +74,19 @@ bool ohtoai::WebhookManager::serve_precondition()
 
 bool ohtoai::WebhookManager::doLoadConfig()
 {
-    // for test
-    using nlohmann::literals::operator"" _json_pointer;
-    configurator["/listen/port"_json_pointer].on_changed += [](FileConfigurator &configurator, const ConfigReference &ref, const nlohmann::json &diff)
-    {
-        fmt::print("Config item {} changed to {}.\n{}\n", ref.to_string(), configurator.get<int>(ref), diff.dump(4));
-    };
-
     fmt::print("Load config {}\n", configurator.path());
-    configurator.load();
+    configurator.set_callback([](ohtoai::file::ConfigMonitor &, const ohtoai::file::json_t & diff)
+    {
+        fmt::print("Config changed, reload.\n");
+        spdlog::info("Config changed, reload.");
+        spdlog::info("Config diff: \n{}", diff.dump(4));
+        // todo reload
+    });
+
     configurator.enterMonitorLoop();
     try
     {
-        config = configurator.getJson().get<WebhookConfigModal>();
+        config = configurator.get<WebhookConfigModal>();
     }
     catch (std::exception e)
     {

@@ -3,7 +3,7 @@
 #ifndef OHTOAI_WEBHOOK_MANAGER_H
 #define OHTOAI_WEBHOOK_MANAGER_H
 
-#include "config/file_configurator.hpp"
+#include "config/config_monitor.hpp"
 #include "config/config_modal.hpp"
 
 #include <inja/inja.hpp>
@@ -26,7 +26,7 @@ namespace ohtoai {
 
         httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res);
     private:
-        FileConfigurator configurator;
+        ohtoai::file::ConfigMonitor configurator;
         WebhookConfigModal config;
         httplib::Server server;
         inja::Environment inja_env;
