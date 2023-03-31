@@ -130,25 +130,17 @@ bool ohtoai::WebhookManager::installHooks()
 
     for (const auto &hook : config.hooks)
     {
-        std::string name = hook.name;
-        std::string method = fplus::to_upper_case(hook.method);
-        std::string path = fmt::format("{}{}", config.listen.prefix, hook.path);
-        std::string command = hook.command;
-        std::string content_type = hook.result.type;
-        std::string content = fmt::format("{}", fmt::join(hook.result.content, "\n"));
-        int command_timeout = hook.command_timeout;
+        spdlog::info("Bind `{}` {} {} hook, with command `{}`", hook.name, hook.method, fmt::format("{}{}", config.listen.prefix, hook.path), hook.command);
 
-        spdlog::info("Bind `{}` {} {} hook, with command `{}`", name, method, path, command);
-
-        auto handler = [=](const httplib::Request &req, httplib::Response &res)
+        auto handler = [&](const httplib::Request &req, httplib::Response &res)
         {
-            spdlog::info("Trigger hook `{}`", name);
+            spdlog::info("Trigger hook `{}`", hook.name);
 
             auto env = injaEnv;
             auto data = basic_render_data;
 
-            data["/context/name"_json_pointer] = name;
-            data["/context/command"_json_pointer] = command;
+            data["/context/name"_json_pointer] = hook.name;
+            data["/context/command"_json_pointer] = hook.command;
             data["/request/method"_json_pointer] = req.method;
             data["/request/path"_json_pointer] = req.path;
             data["/request/body"_json_pointer] = req.body;
@@ -157,19 +149,19 @@ bool ohtoai::WebhookManager::installHooks()
             for (const auto &[key, value] : req.headers)
                 data["/request/header"_json_pointer][key] = value;
             data["/request/content_length"_json_pointer] = req.body.size();
-            auto rendered_command = env.render(command, data);
+            auto rendered_command = env.render(hook.command, data);
             data["/context/rendered_command"_json_pointer] = rendered_command;
 
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
-            env.add_callback("command_output", 0, [&command_output_future, command_timeout](inja::Arguments &args) -> nlohmann::json
+            env.add_callback("command_output", 0, [&](inja::Arguments &args) -> nlohmann::json
                 {
-                if (command_timeout > 0)
+                if (hook.command_timeout > 0)
                 {
                     if(command_output_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
                     {
-                        spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
+                        spdlog::info("Waiting for command output... (timeout: {}ms)", hook.command_timeout);
                     }
-                    if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                    if (command_output_future.wait_for(std::chrono::milliseconds(hook.command_timeout)) == std::future_status::ready)
                     {
                         spdlog::info("Command output received");
                         return command_output_future.get();
@@ -189,7 +181,7 @@ bool ohtoai::WebhookManager::installHooks()
             try
             {
                 auto result = env.render(content, data);
-                res.set_content(result, content_type.c_str());
+                res.set_content(result, hook.result.type.c_str());
                 if (result.size() > 1024)
                     spdlog::debug("Render: \n\r{}...\n", result.substr(0, 1024));
                 else
@@ -222,7 +214,7 @@ bool ohtoai::WebhookManager::installHooks()
     return true;
 }
 
-httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res)
+httplib::Server::HandlerResponse ohtoai::WebhookManager::authRoutingHandler(const httplib::Request &req, httplib::Response &res)
 {
     if (req.has_header("X-Real-IP"))
     {
