@@ -51,18 +51,17 @@ hook.json
 {
     "hooks": [
         {
-            "async_exec": false,
             "command": "echo -n \"Hello\"",
-            "command_timeout": 3000,
+            "command_timeout": 8000,
             "method": "GET",
             "name": "hi",
             "path": "/hi",
             "result": {
                 "content": [
-                    "<h1>{{&app}} {{&version}}{{#hash}}({{.}}){{/hash}}</h1>",
-                    "<p>Method: {{&request.method}}</p>",
-                    "<p>Path: {{&request.path}}</p>",
-                    "<p>User-Agent: {{#request.header}}user-agent{{/request.header}}</p>",
+                    "<h1>{{context.app}} {{context.version}}{{context.commit_hash}}</h1>",
+                    "<p>Method: {{request.method}}</p>",
+                    "<p>Path: {{request.path}}</p>",
+                    "<p>User-Agent: {{request.header.user-agent}}</p>",
                     "<p>Client: {{request.remote_addr}}</p>",
                     "<p>{{command_output}}</p>"
                 ],
