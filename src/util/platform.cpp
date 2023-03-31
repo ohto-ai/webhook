@@ -3,12 +3,6 @@
 #if defined(_WIN32)
 #define popen _popen
 #define pclose _pclose
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 #include <windows.h>
 #elif defined(__linux__)
 #include <sys/ioctl.h>
@@ -47,6 +41,7 @@ std::shared_future<std::string> PlatformHelper::executeCommandAsync(std::string 
     auto shared_future = std::async(std::launch::async, [this, cmd]()
                                     { return executeCommand(cmd); })
                              .share();
+    // Detach the shared_future to avoid blocking the main thread
     std::thread([shared_future]
                 { shared_future.wait(); })
         .detach();

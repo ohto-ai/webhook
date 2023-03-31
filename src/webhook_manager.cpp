@@ -2,15 +2,6 @@
 #include "util/platform.h"
 #include "version.hpp"
 
-#ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#endif
-
 #include <ghc/filesystem.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -233,25 +224,28 @@ bool ohtoai::WebhookManager::installHooks()
             auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
             env.add_callback("command_output", 0, [&command_output_future, command_timeout](inja::Arguments &args) -> nlohmann::json
                              {
-                                                                          if (command_timeout > 0)
-                                                                          {
-                                                                              spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
-                                                                              if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
-                                                                              {
-                                                                                  spdlog::info("Command output received");
-                                                                                  return command_output_future.get();
-                                                                              }
-                                                                              else
-                                                                              {
-                                                                                  spdlog::warn("Command output timeout");
-                                                                                  return std::string{};
-                                                                              }
-                                                                          }
-                                                                          else
-                                                                          {
-                                                                              spdlog::info("Waiting for command output...");
-                                                                              return command_output_future.get();
-                                                                          } });
+                                if (command_timeout > 0)
+                                {
+                                    if(command_output_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready)
+                                    {
+                                        spdlog::info("Waiting for command output... (timeout: {}ms)", command_timeout);
+                                    }
+                                    if (command_output_future.wait_for(std::chrono::milliseconds(command_timeout)) == std::future_status::ready)
+                                    {
+                                        spdlog::info("Command output received");
+                                        return command_output_future.get();
+                                    }
+                                    else
+                                    {
+                                        spdlog::warn("Command output timeout");
+                                        return std::string{};
+                                    }
+                                }
+                                else
+                                {
+                                    spdlog::info("Waiting for command output...");
+                                    return command_output_future.get();
+                                } });
             // add try-catch
             try
             {
@@ -307,6 +301,8 @@ bool ohtoai::WebhookManager::installHooks()
     return true;
 }
 
-ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {}
+ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {
+    ghc::filesystem::current_path(PlatformHelper::getInstance().getProgramDirectory());
+}
 
 ohtoai::WebhookManager::~WebhookManager() {}

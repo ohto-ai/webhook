@@ -62,6 +62,12 @@ configure_file(
     ${PROJECT_BINARY_DIR}/generated/inc/version.hpp
 )
 
+# if on windows, add define WIN32_LEAN_AND_MEAN and NOMINMAX
+if (WIN32)
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_definitions(-DNOMINMAX)
+endif()
+
 # Add openssl include directories
 if (APPLE AND OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})

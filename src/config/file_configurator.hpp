@@ -1,14 +1,5 @@
 #pragma once
 
-#ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#endif
-
 #include <functional>
 #include <thread>
 #include <map>
@@ -85,7 +76,7 @@ public:
         for (auto &df_obj : df)
         {
             auto &path = df_obj.at("path");
-            auto ref = nlohmann::json::json_pointer(path);
+            auto ref = ConfigReference(path);
             auto &op = df_obj.at("op");
 
             if (configItems.find(path) != configItems.end())
