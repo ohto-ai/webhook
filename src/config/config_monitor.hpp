@@ -60,8 +60,9 @@ namespace ohtoai::file
             {
                 nlohmann::json _{};
                 swap(_);
-                if(callback)
-                    callback(*this, nlohmann::json::diff(_, *this));
+                auto df = nlohmann::json::diff(_, *this);
+                if(!df.empty() && callback)
+                    callback(*this, df);
                 return;
             }
 
