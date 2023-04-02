@@ -47,11 +47,20 @@ list(APPEND ThirdParty file_monitor)
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-find_package(Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
+if (APPLE)
+    set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl" CACHE STRING "openssl root" FORCE)
+endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+find_package(Threads REQUIRED)
+find_package(OpenSSL QUIET)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+
+if (UNIX)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+elseif(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+endif()
 
 # link ThirdParty list
 foreach(ThirdPartyLib ${ThirdParty})
