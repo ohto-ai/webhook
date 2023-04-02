@@ -18,7 +18,6 @@ namespace ohtoai::file
 
     class ConfigMonitor : public nlohmann::json, private std::mutex
     {
-
     public:
         ConfigMonitor() {};
         ConfigMonitor(const ghc::filesystem::path &config_path) { set_config_path(config_path);};

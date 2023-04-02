@@ -64,7 +64,6 @@ TEST_CASE( "FileConfigurator can read and save file", "[FileConfigurator]" ) {
     
     SECTION("monitor callback"){
         configurator.set_callback([&](ohtoai::file::ConfigMonitor &cm, const nlohmann::json &diff){
-            
             spdlog::info("Line {} configurator\n{}\ndiff", __LINE__, configurator.dump(4), diff.dump(4));
             REQUIRE(cm.at("a") == test_config_json.at("a"));
             REQUIRE(cm.at("b") == test_config_json.at("b"));
