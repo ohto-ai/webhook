@@ -78,4 +78,3 @@ struct WebhookConfigModal
         return config;
     }
 };
-
