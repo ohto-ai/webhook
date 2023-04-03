@@ -46,6 +46,8 @@ namespace ohtoai {
         std::unique_ptr<std::thread> config_monitor_thread;
         std::filesystem::file_time_type last_config_modify_time;
         ExitReason exit_reason {ExitReason::Finish};
+        std::string default_icon_data;
+        std::string default_icon_type;
 
         bool arg_generate_config_if_not_exist {true};
         bool arg_quit_after_config_generate {true};

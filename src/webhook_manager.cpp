@@ -20,7 +20,11 @@ ohtoai::ExitReason ohtoai::WebhookManager::exec()
         || !doLoadConfig()
         || !installLoggers()
         || !installHooks())
+    {
+        spdlog::error("Failed to start server.");
         return ohtoai::Terminate;
+    }
+    spdlog::info("Server started.");
 
     config_monitor_thread = std::make_unique<std::thread>([this]()
     {
@@ -50,14 +54,17 @@ ohtoai::ExitReason ohtoai::WebhookManager::exec()
 
     server.set_pre_routing_handler([this](const auto& req, auto& res) { return authRoutingHandler(req, res);});
 
+    server.Get("/favicon.ico", [this](const httplib::Request &req, httplib::Response &res)
+               {
+                   res.set_content(default_icon_data, default_icon_type.c_str());
+               });
+
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
     if(!server.listen_after_bind())
         exit_reason = ohtoai::Terminate;
 
-
     return exit_reason;
-    // todo: ohtoai::Reload
 }
 
 void ohtoai::WebhookManager::welcome() const
@@ -89,7 +96,7 @@ bool ohtoai::WebhookManager::serve_precondition()
             std::ofstream ofs(arg_config_path);
             ofs << j << std::endl;
             ofs.close();
-            return (!arg_quit_after_config_generate);
+            return !arg_quit_after_config_generate;
         }
         else
         {
@@ -103,7 +110,6 @@ bool ohtoai::WebhookManager::serve_precondition()
 bool ohtoai::WebhookManager::doLoadConfig()
 {
     spdlog::info("Load config {}", arg_config_path.string());
-
     try
     {
         last_config_modify_time = std::filesystem::last_write_time(arg_config_path);
@@ -311,11 +317,14 @@ ohtoai::WebhookManager::WebhookManager(int argc, char **argv) {
 
     default_headers.emplace("Server", fmt::format("{} {}", VersionHelper::getInstance().AppName, VersionHelper::getInstance().Version));
     server.set_default_headers(default_headers);
+
+    default_icon_type = "image/svg+xml";
+    default_icon_data = R"FAVICON(<svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M96.228571 697.828571z m121.942858-105.485714c-28.571429 28.571429-44.228571 66.4-44.228572 106.742857s15.771429 78.285714 44.228572 106.742857c28.571429 28.571429 66.4 44.228571 106.742857 44.228572 40.342857 0 78.285714-15.771429 106.742857-44.228572l67.885714-67.885714-213.485714-213.485714-67.885714 67.885714z m480.914285-418.4c-40.342857 0-78.285714 15.771429-106.742857 44.228572l-67.885714 67.885714 213.485714 213.485714 67.885714-67.885714c28.457143-28.571429 44.228571-66.4 44.228572-106.742857s-15.771429-78.285714-44.228572-106.742857c-28.571429-28.571429-66.4-44.228571-106.742857-44.228572z" fill="#D9D9D9" /><path d="M588.457143 551.657143a9.177143 9.177143 0 0 0-12.914286 0L499.428571 627.771429 396.228571 524.571429l76.228572-76.228572c3.542857-3.542857 3.542857-9.371429 0-12.914286L430.857143 393.828571a9.177143 9.177143 0 0 0-12.914286 0L341.714286 470.057143l-49.142857-49.142857a8.971429 8.971429 0 0 0-6.514286-2.628572c-2.285714 0-4.685714 0.914286-6.514286 2.628572L163.2 537.371429a227.942857 227.942857 0 0 0-66.971429 160.457142c-0.228571 45.142857 12.8 90.4 39.2 129.257143l-86.971428 86.971429a9.177143 9.177143 0 0 0 0 12.914286l48.457143 48.457142c1.828571 1.828571 4.114286 2.628571 6.514285 2.628572s4.685714-0.914286 6.514286-2.628572l86.971429-86.971428c38.514286 26.171429 83.314286 39.2 128.114285 39.2 58.514286 0 117.028571-22.285714 161.714286-66.971429l116.457143-116.457143c3.542857-3.542857 3.542857-9.371429 0-12.914285l-49.142857-49.142857 76.228571-76.228572c3.542857-3.542857 3.542857-9.371429 0-12.914286l-41.828571-41.371428zM431.657143 805.828571a150.08 150.08 0 0 1-106.742857 44.228572c-40.342857 0-78.171429-15.657143-106.742857-44.228572-28.457143-28.457143-44.228571-66.4-44.228572-106.742857s15.657143-78.171429 44.228572-106.742857l67.885714-67.885714 213.485714 213.485714-67.885714 67.885714z m544-708.914285l-48.457143-48.457143c-1.828571-1.828571-4.114286-2.628571-6.514286-2.628572s-4.685714 0.914286-6.514285 2.628572l-86.971429 86.971428a227.737143 227.737143 0 0 0-128.114286-39.2c-58.514286 0-117.028571 22.285714-161.714285 66.971429L420.914286 279.657143a9.177143 9.177143 0 0 0 0 12.914286L731.428571 603.085714c1.828571 1.828571 4.114286 2.628571 6.514286 2.628572 2.285714 0 4.685714-0.914286 6.514286-2.628572l116.457143-116.457143c78.742857-78.857143 88-200.8 27.771428-289.714285l86.971429-86.971429c3.542857-3.657143 3.542857-9.485714 0-13.028571zM805.828571 431.657143l-67.885714 67.885714-213.485714-213.485714 67.885714-67.885714c28.457143-28.457143 66.4-44.228571 106.742857-44.228572s78.171429 15.657143 106.742857 44.228572c28.457143 28.457143 44.228571 66.4 44.228572 106.742857s-15.771429 78.171429-44.228572 106.742857z"  /></svg>)FAVICON";
 }
 
 ohtoai::WebhookManager::~WebhookManager() {
     if (server.is_running())
         server.stop();
-    if (config_monitor_thread->joinable())
+    if (config_monitor_thread && config_monitor_thread->joinable())
         config_monitor_thread->join();
 }
