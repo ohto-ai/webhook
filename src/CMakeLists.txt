@@ -40,16 +40,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Add include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
-target_include_directories(${PROJECT_NAME} PRIVATE 3rd)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
-
-# Add file_monitor
-set(file_monitor_PLATFORM ${${PROJECT_NAME}_PLATFORM})
-add_subdirectory(3rd/ltjax/file_monitor)
-list(APPEND ThirdParty file_monitor)
-
-# Link ThirdParty list
-target_link_libraries(${PROJECT_NAME} PRIVATE ${ThirdParty})
 
 # Link thread and ssl lib
 if (APPLE)

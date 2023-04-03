@@ -2,17 +2,17 @@
 #include "util/platform.h"
 #include "version.hpp"
 
-#include <ghc/filesystem.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/fmt/bundled/color.h>
 #include <spdlog/fmt/fmt.h>
-#include <algorithm>
-#include <cppcodec/base64_default_rfc4648.hpp>
 #include <fplus/fplus.hpp>
+#include <cppcodec/base64_default_rfc4648.hpp>
 
-int ohtoai::WebhookManager::exec()
+#include <algorithm>
+
+ohtoai::ExitReason ohtoai::WebhookManager::exec()
 {
     welcome(); // Print welcome message
 
@@ -20,7 +20,7 @@ int ohtoai::WebhookManager::exec()
         || !doLoadConfig()
         || !installLoggers()
         || !installHooks())
-        return -1;
+        return ohtoai::Terminate;
 
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
@@ -37,8 +37,8 @@ int ohtoai::WebhookManager::exec()
 
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
-    return server.listen_after_bind() ? 0 : 1;
-    // ~configurator.exitMonitorLoop();
+    return server.listen_after_bind() ? ohtoai::Finish : ohtoai::Terminate;
+    // todo: ohtoai::Reload
 }
 
 void ohtoai::WebhookManager::welcome() const
@@ -61,39 +61,44 @@ void ohtoai::WebhookManager::welcome() const
 
 bool ohtoai::WebhookManager::serve_precondition()
 {
-    if (!configurator.exists())
+    if (!std::filesystem::exists(arg_config_path))
     {
-        fmt::print("Config file not found, generate a new one.\n");
-        nlohmann::json j = WebhookConfigModal::generate();
-        configurator = j;
-        configurator.save();
-        return false;
+        if(arg_generate_config_if_not_exist)
+        {
+            spdlog::warn("Config file not found, generate a new one.\n");
+            nlohmann::json j = WebhookConfigModal::generate();
+            std::ofstream ofs(arg_config_path);
+            ofs << j << std::endl;
+            ofs.close();
+            return (!arg_quit_after_config_generate);
+        }
+        else
+        {
+            return false;
+        }
     }
+
     return true;
 }
 
 bool ohtoai::WebhookManager::doLoadConfig()
 {
-    fmt::print("Load config {}\n", configurator.path());
-    configurator.set_callback([](ohtoai::file::ConfigMonitor &, const ohtoai::file::json_t & diff)
-    {
-        fmt::print("Config changed, reload.\n");
-        spdlog::info("Config changed, reload.");
-        spdlog::info("Config diff: \n{}", diff.dump(4));
-        // todo reload
-    });
+    spdlog::info("Load config {}", arg_config_path.string());
 
-    configurator.enterMonitorLoop();
     try
     {
-        config = configurator.get<WebhookConfigModal>();
+        nlohmann::json j;
+        std::ifstream ifs(arg_config_path);
+        ifs >> j;
+        ifs.close();
+        config = j;
     }
     catch (std::exception e)
     {
-        fmt::print(stderr, "{}\n", e.what());
+        spdlog::error("{}", e.what());
         return false;
     }
-    fmt::print("Config loaded.\n");
+    spdlog::info("Config loaded.");
     return true;
 }
 
@@ -253,8 +258,11 @@ std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillE
     return {std::move(env), std::move(data)};
 }
 
-ohtoai::WebhookManager::WebhookManager(int argc, char **argv) : configurator(ghc::filesystem::path(PlatformHelper::getInstance().getProgramDirectory()) / "hook.json") {
-    ghc::filesystem::current_path(PlatformHelper::getInstance().getProgramDirectory());
+ohtoai::WebhookManager::WebhookManager(int argc, char **argv) {
+    std::filesystem::current_path(PlatformHelper::getInstance().getProgramDirectory());
+    
+    // todo: Handle argv
+
     basic_render_data["/context/app"_json_pointer] = VersionHelper::getInstance().AppName;
     basic_render_data["/context/version"_json_pointer] = VersionHelper::getInstance().Version;
     basic_render_data["/context/commit_hash"_json_pointer] = VersionHelper::getInstance().CommitHash;
