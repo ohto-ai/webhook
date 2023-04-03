@@ -23,6 +23,7 @@ namespace ohtoai {
         WebhookManager(int argc, char **argv);
         ~WebhookManager();
         ExitReason exec();
+
     private:
         void welcome() const;
         bool serve_precondition();
@@ -33,6 +34,7 @@ namespace ohtoai {
         std::tuple<inja::Environment&&, nlohmann::json &&> fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res);
 
         httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res);
+
     private:
         WebhookConfigModal config;
         httplib::Server server;
