@@ -28,10 +28,6 @@ if (WIN32)
     add_definitions(-DNOMINMAX)
 endif()
 
-# Add include directories
-include_directories(${CMAKE_SOURCE_DIR}/inc)
-include_directories(${PROJECT_BINARY_DIR}/generated/inc)
-
 # Add source files
 set(SOURCES
         main.cpp
@@ -39,30 +35,30 @@ set(SOURCES
         util/platform.cpp
 )
 
+# Build the executable
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Add include directories
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
+
 # Add file_monitor
 set(file_monitor_PLATFORM ${${PROJECT_NAME}_PLATFORM})
 add_subdirectory(3rd/ltjax/file_monitor)
 list(APPEND ThirdParty file_monitor)
 
-# Build the executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+# Link ThirdParty list
+target_link_libraries(${PROJECT_NAME} PRIVATE ${ThirdParty})
 
+# Link thread and ssl lib
 if (APPLE)
     set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl" CACHE STRING "openssl root" FORCE)
 endif()
-
 find_package(Threads REQUIRED)
 find_package(OpenSSL QUIET)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
-
-# link ThirdParty list
-foreach(ThirdPartyLib ${ThirdParty})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${ThirdPartyLib})
-endforeach()
