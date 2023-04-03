@@ -8,14 +8,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 set(${PROJECT_NAME}_PLATFORM Undefined)
 if(WIN32)
-  set(${PROJECT_NAME}_PLATFORM PLATFORM_WIN32)
+    set(${PROJECT_NAME}_PLATFORM PLATFORM_WIN32)
 elseif(APPLE)
-  set(${PROJECT_NAME}_PLATFORM PLATFORM_MACOS)
+    set(${PROJECT_NAME}_PLATFORM PLATFORM_MACOS)
 elseif(UNIX AND NOT APPLE)
-  set(${PROJECT_NAME}_PLATFORM PLATFORM_LINUX)
+    set(${PROJECT_NAME}_PLATFORM PLATFORM_LINUX)
 endif()
 
-include(${CMAKE_SOURCE_DIR}/cmake/add_git_version.cmake)
+include(../cmake/add_git_version.cmake)
 
 configure_file(
     ${PROJECT_SOURCE_DIR}/pre/version.hpp.in
@@ -30,16 +30,17 @@ endif()
 
 # Add source files
 set(SOURCES
-        main.cpp
-        webhook_manager.cpp
-        util/platform.cpp
+    main.cpp
+    webhook_manager.cpp
+    util/platform.cpp
 )
 
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Add include directories
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
+target_include_directories(${PROJECT_NAME} PRIVATE 3rd)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
 
 # Add file_monitor
