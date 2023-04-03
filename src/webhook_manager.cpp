@@ -22,6 +22,21 @@ ohtoai::ExitReason ohtoai::WebhookManager::exec()
         || !installHooks())
         return ohtoai::Terminate;
 
+    config_monitor_thread = std::make_unique<std::thread>([this]()
+    {
+        while (server.is_running())
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (last_config_modify_time != std::filesystem::last_write_time(arg_config_path))
+            {
+                spdlog::info("Config file changed, reload.");
+                exit_reason = ohtoai::Reload;
+                server.stop();
+                return;
+            }
+        }
+    });
+
     server.bind_to_port(config.listen.host.c_str(), config.listen.port);
 
     server.set_logger([](const httplib::Request &req, const httplib::Response &res)
@@ -37,7 +52,11 @@ ohtoai::ExitReason ohtoai::WebhookManager::exec()
 
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
-    return server.listen_after_bind() ? ohtoai::Finish : ohtoai::Terminate;
+    if(!server.listen_after_bind())
+        exit_reason = ohtoai::Terminate;
+
+
+    return exit_reason;
     // todo: ohtoai::Reload
 }
 
@@ -87,6 +106,7 @@ bool ohtoai::WebhookManager::doLoadConfig()
 
     try
     {
+        last_config_modify_time = std::filesystem::last_write_time(arg_config_path);
         nlohmann::json j;
         std::ifstream ifs(arg_config_path);
         ifs >> j;
@@ -136,7 +156,9 @@ bool ohtoai::WebhookManager::installHooks()
         {
             spdlog::info("Trigger hook `{}`", hook.name);
 
-            auto [env, data] = fillEnv(hook, req, res);
+            inja::Environment env = inja_env;
+            nlohmann::json data = basic_render_data;
+            fillEnv(env, data, hook, req, res);
 
             try
             {
@@ -149,7 +171,7 @@ bool ohtoai::WebhookManager::installHooks()
             }
             catch (const std::exception &e)
             {
-                spdlog::error("Render content failed: {}", e.what());
+                spdlog::error("Render content failed: {}\n\nContent:\n{}\nData:\n{}", e.what(), content, data.dump(4));
                 res.status = 500;
                 res.set_content("Render content failed", "text/plain");
                 return;
@@ -212,11 +234,8 @@ httplib::Server::HandlerResponse ohtoai::WebhookManager::authRoutingHandler(cons
     return httplib::Server::HandlerResponse::Unhandled; 
 }
 
-std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res)
+void ohtoai::WebhookManager::fillEnv(inja::Environment& env, nlohmann::json & data, const Hook& hook, const httplib::Request &req, httplib::Response &res)
 {
-    auto env = inja_env;
-    auto data = basic_render_data;
-
     data["/context/name"_json_pointer] = hook.name;
     data["/context/command"_json_pointer] = hook.command;
     data["/request/method"_json_pointer] = req.method;
@@ -225,13 +244,13 @@ std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillE
     data["/request/remote_addr"_json_pointer] = req.remote_addr;
     data["/request/remote_port"_json_pointer] = req.remote_port;
     for (const auto &[key, value] : req.headers)
-        data["/request/header"_json_pointer][key] = value;
+        data["/request/header"_json_pointer][fplus::to_lower_case(key)] = value;
     data["/request/content_length"_json_pointer] = req.body.size();
     auto rendered_command = env.render(hook.command, data);
     data["/context/rendered_command"_json_pointer] = rendered_command;
 
     auto command_output_future = PlatformHelper::getInstance().executeCommandAsync(rendered_command);
-    env.add_callback("command_output", 0, [&](inja::Arguments &args) -> nlohmann::json
+    env.add_callback("command_output", 0, [&hook, command_output_future](inja::Arguments &args) -> nlohmann::json
         {
         if (hook.command_timeout > 0)
         {
@@ -255,7 +274,6 @@ std::tuple<inja::Environment&&, nlohmann::json &&> ohtoai::WebhookManager::fillE
             spdlog::info("Waiting for command output...");
             return command_output_future.get();
         } });
-    return {std::move(env), std::move(data)};
 }
 
 ohtoai::WebhookManager::WebhookManager(int argc, char **argv) {
@@ -295,4 +313,9 @@ ohtoai::WebhookManager::WebhookManager(int argc, char **argv) {
     server.set_default_headers(default_headers);
 }
 
-ohtoai::WebhookManager::~WebhookManager() {}
+ohtoai::WebhookManager::~WebhookManager() {
+    if (server.is_running())
+        server.stop();
+    if (config_monitor_thread->joinable())
+        config_monitor_thread->join();
+}

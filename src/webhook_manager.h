@@ -8,6 +8,8 @@
 #include <inja/inja.hpp>
 #include <cpp-httplib/httplib.h>
 
+#include <thread>
+#include <memory>
 #include <filesystem>
 
 namespace ohtoai {
@@ -31,7 +33,7 @@ namespace ohtoai {
         bool installLoggers();
         bool installHooks();
 
-        std::tuple<inja::Environment&&, nlohmann::json &&> fillEnv(const Hook& hook, const httplib::Request &req, httplib::Response &res);
+        void fillEnv(inja::Environment& env, nlohmann::json & data, const Hook& hook, const httplib::Request &req, httplib::Response &res);
 
         httplib::Server::HandlerResponse authRoutingHandler(const httplib::Request &req, httplib::Response &res);
 
@@ -41,6 +43,9 @@ namespace ohtoai {
         inja::Environment inja_env;
         nlohmann::json basic_render_data;
         httplib::Headers default_headers;
+        std::unique_ptr<std::thread> config_monitor_thread;
+        std::filesystem::file_time_type last_config_modify_time;
+        ExitReason exit_reason {ExitReason::Finish};
 
         bool arg_generate_config_if_not_exist {true};
         bool arg_quit_after_config_generate {true};
