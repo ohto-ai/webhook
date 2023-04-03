@@ -88,6 +88,11 @@ hook.json
 }
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Ohto-Ai/webhook&type=Date)](https://star-history.com/#Ohto-Ai/webhook&Date)
+
+
 [license:badge]: https://img.shields.io/github/license/Ohto-Ai/webhook?logo=github&style=flat-square
 
 [issues:badge]: https://img.shields.io/github/issues/Ohto-Ai/webhook?logo=github&style=flat-square
