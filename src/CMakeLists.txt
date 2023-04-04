@@ -38,6 +38,12 @@ set(SOURCES
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+# Add bigobj option
+target_compile_options(${PROJECT_NAME}
+	PRIVATE
+	$<$<CXX_COMPILER_ID:MSVC>:/bigobj>
+	$<$<CXX_COMPILER_ID:GNU>:-Wa,-mbig-obj>)
+
 # Add include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
