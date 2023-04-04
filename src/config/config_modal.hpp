@@ -64,12 +64,21 @@ struct WebhookConfigModal
             {
                 "text/html", // type
                 {
-                    "<h1>{{context.app}} {{context.version}}{{context.commit_hash}}</h1>",
-                    "<p>Method: {{request.method}}</p>",
-                    "<p>Path: {{request.path}}</p>",
-                    "<p>User-Agent: {{request.header.user-agent}}</p>",
-                    "<p>Client: {{request.remote_addr}}</p>",
-                    "<p>{{command_output}}</p>"}, // content
+                    "<html>",
+                    "<head>",
+                    "    <link rel=\"shortcut icon\" href=\"favicon.ico\" type=\"image/svg+xml\">",
+                    "    <link rel=\"icon\" href=\"favicon.ico\" type=\"image/svg+xml\">",
+                    "</head>",
+                    "<body>",
+                    "   <h1>{{context.app}} {{context.version}} [{{context.commit_hash}}]</h1>",
+                    "   <p>Method: {{request.method}}</p>",
+                    "   <p>Path: {{request.path}}</p>",
+                    "   <p>User-Agent: {{request.header.user-agent}}</p>",
+                    "   <p>Client: {{request.remote_addr}}</p>",
+                    "   <p>{{command_output}}</p>",
+                    "</body>",
+                    "</html>"
+                },                                 // content
             },                                     // result
             8000,                                  // command_timeout
         };

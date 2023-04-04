@@ -54,11 +54,6 @@ ohtoai::ExitReason ohtoai::WebhookManager::exec()
 
     server.set_pre_routing_handler([this](const auto& req, auto& res) { return authRoutingHandler(req, res);});
 
-    server.Get("/favicon.ico", [this](const httplib::Request &req, httplib::Response &res)
-               {
-                   res.set_content(default_icon_data, default_icon_type.c_str());
-               });
-
     spdlog::info("Server listen {}:{}.", config.listen.host, config.listen.port);
 
     if(!server.listen_after_bind())
@@ -94,7 +89,7 @@ bool ohtoai::WebhookManager::serve_precondition()
             spdlog::warn("Config file not found, generate a new one.\n");
             nlohmann::json j = WebhookConfigModal::generate();
             std::ofstream ofs(arg_config_path);
-            ofs << j << std::endl;
+            ofs << j.dump(4) << std::endl;
             ofs.close();
             return !arg_quit_after_config_generate;
         }
@@ -152,6 +147,11 @@ bool ohtoai::WebhookManager::installLoggers()
 bool ohtoai::WebhookManager::installHooks()
 {
     using nlohmann::literals::operator"" _json_pointer;
+
+    server.Get(fmt::format("{}/favicon.ico", config.listen.prefix).c_str(), [this](const httplib::Request &req, httplib::Response &res)
+        {
+            res.set_content(default_icon_data, default_icon_type.c_str());
+        });
 
     for (const auto &hook : config.hooks)
     {
