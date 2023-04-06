@@ -38,11 +38,16 @@ set(SOURCES
 # Build the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Add bigobj option
+# Check and add bigobj option
+if(CMAKE_COMPILER_IS_GNUCXX)
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
+  message(STATUS GNU_BIG_OBJ_FLAG_ENABLE=${GNU_BIG_OBJ_FLAG_ENABLE})
+endif()
 target_compile_options(${PROJECT_NAME}
 	PRIVATE
 	$<$<CXX_COMPILER_ID:MSVC>:/bigobj>
-	$<$<CXX_COMPILER_ID:GNU>:-Wa,-mbig-obj>)
+	$<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>) 
 
 # Add include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ../inc)

@@ -1,13 +1,13 @@
 name: Cross-platform CI & Release
 
 on:
-  push:
-    paths:
-      - '.github/workflows/ci_release.yaml'
-      - 'src/*'
-      - 'inc/*'
-      - 'CMakeLists.txt'
-      - '*.cmake'
+  # push:
+  #   paths:
+  #     - '.github/workflows/ci_release.yaml'
+  #     - 'src/*'
+  #     - 'inc/*'
+  #     - 'CMakeLists.txt'
+  #     - '*.cmake'
   pull_request:
     paths:
       - '.github/workflows/ci_release.yaml'
