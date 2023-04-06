@@ -6,6 +6,8 @@
 |[![PRs][pulls:badge]][pulls]|[![Closed PRs][closed-pulls:badge]][closed-pulls]|
 |[![Stargazers][stargazers:badge]][stargazers]|[![Commit Activity][commit-activity:badge]][commit-activity]|
 
+[![Cross-platform CI & Release](https://github.com/Ohto-Ai/webhook/actions/workflows/ci_release.yaml/badge.svg)](https://github.com/Ohto-Ai/webhook/actions/workflows/ci_release.yaml)
+
 ![Top Lang][top-lang]
 
 
