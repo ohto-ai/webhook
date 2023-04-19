@@ -39,7 +39,7 @@ jobs:
 
         if [[ $os_name == "Linux" ]]; then
           package_path=$deb_path
-          asset_name=$deb_file
+          asset_name=${{ matrix.os }}_$deb_file
           cmake --build build --config Release --target package -j8
         else
           package_path=$bin_path
