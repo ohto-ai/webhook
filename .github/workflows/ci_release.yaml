@@ -43,7 +43,7 @@ jobs:
           cmake --build build --config Release --target package -j8
         else
           package_path=$bin_path
-          asset_name="$bin_name_${{ matrix.os }}_${{ github.ref_name }}"
+          asset_name="${bin_name}_${{ matrix.os }}_${{ github.ref_name }}"
         fi
 
         echo "package_name=$bin_name" >> $GITHUB_OUTPUT
