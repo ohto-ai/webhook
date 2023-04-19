@@ -8,8 +8,10 @@ set(EMAIL "zhu.thatboy@outlook.com")
 set(DESCRIPTION "A webhook server")
 if(WIN32)
     set(BINARY_SUFFIX ".exe")
+    set(RELEASE_DIR "Release/")
 else()
     set(BINARY_SUFFIX "")
+    set(RELEASE_DIR "")
 endif()
 
 configure_file(
