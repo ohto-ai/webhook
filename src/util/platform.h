@@ -22,6 +22,7 @@ public:
     int getTerminalHeight() const;
     std::string getExecutablePath() const;
     std::string getProgramDirectory() const;
+    std::string getHomeDirectory() const;
 };
 
 #endif // !_WEBHOOK_PLATFORM_H_

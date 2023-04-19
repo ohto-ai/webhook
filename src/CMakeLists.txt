@@ -1,25 +1,25 @@
 cmake_minimum_required(VERSION 3.10)
-project(webhook CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-
-# Set the output directory for the executable
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
-
-set(${PROJECT_NAME}_PLATFORM Undefined)
-if(WIN32)
-    set(${PROJECT_NAME}_PLATFORM PLATFORM_WIN32)
-elseif(APPLE)
-    set(${PROJECT_NAME}_PLATFORM PLATFORM_MACOS)
-elseif(UNIX AND NOT APPLE)
-    set(${PROJECT_NAME}_PLATFORM PLATFORM_LINUX)
-endif()
 
 include(../cmake/add_git_version.cmake)
+project(ohtoai-webhook LANGUAGES CXX VERSION ${BUILD_VERSION_MAJOR}.${BUILD_VERSION_MINOR}.${BUILD_VERSION_PATCH})
+
+set(CMAKE_CXX_STANDARD 17)
+set(AUTHOR "OhtoAi")
+set(EMAIL "zhu.thatboy@outlook.com")
+set(DESCRIPTION "A webhook server")
+if(WIN32)
+    set(BINARY_SUFFIX ".exe")
+else()
+    set(BINARY_SUFFIX "")
+endif()
 
 configure_file(
     ${PROJECT_SOURCE_DIR}/pre/version.hpp.in
     ${PROJECT_BINARY_DIR}/generated/inc/version.hpp
+)
+configure_file(
+    ../scripts/env.sh.in
+    ${CMAKE_SOURCE_DIR}/scripts/env.sh
 )
 
 # if on windows, add define WIN32_LEAN_AND_MEAN and NOMINMAX
@@ -42,7 +42,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 if(CMAKE_COMPILER_IS_GNUCXX)
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
-  message(STATUS GNU_BIG_OBJ_FLAG_ENABLE=${GNU_BIG_OBJ_FLAG_ENABLE})
 endif()
 target_compile_options(${PROJECT_NAME}
 	PRIVATE
@@ -64,4 +63,8 @@ if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+endif()
+
+if (UNIX AND NOT APPLE)
+    include(../cmake/ubuntu_package.cmake)
 endif()

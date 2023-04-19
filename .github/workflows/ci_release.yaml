@@ -31,32 +31,24 @@ jobs:
         fetch-depth: 1
     - name: Build
       id: build
-      env:
-        archiveName: ${{ github.event.repository.name }}
       shell: bash
       run: |
         cmake -B build
-        cmake --build build --config Release --target ${{env.archiveName}} -j8
+        source scripts/env.sh
+        cmake --build build --config Release --target $bin_name -j8
 
-        if [[ "$OSTYPE" ==  "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "mingw32" ]]; then
-          echo "Build on Windows."
-          path="build/bin/Release/${{env.archiveName}}.exe"
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-          echo "Build on MacOS."
-          path="build/bin/${{env.archiveName}}"
-        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-          echo "Build on Linux."
-          path="build/bin/${{env.archiveName}}"
+        if [[ $os_name == "Linux" ]]; then
+          package_path=$deb_path
+          asset_name=$deb_file
         else
-          echo "This system platform is not supported or recognized. Use default path"
-          path="build/bin/${{env.archiveName}}"
+          package_path=$bin_path
+          asset_name="${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}"
         fi
 
-        name="${{env.archiveName}}"
-        hash=$(git rev-parse --short HEAD)
-        echo "package_name=$name" >> $GITHUB_OUTPUT
-        echo "package_path=$path" >> $GITHUB_OUTPUT
-        echo "commit_hash=$hash" >> $GITHUB_OUTPUT
+        echo "package_name=$bin_name" >> $GITHUB_OUTPUT
+        echo "package_path=$package_path" >> $GITHUB_OUTPUT
+        echo "commit_hash=$commit_hash" >> $GITHUB_OUTPUT
+        echo "asset_name=$commit_hash" >> $GITHUB_OUTPUT
     - name: Test
       run: |
         cmake --build build --config Release -j8
@@ -74,7 +66,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{ steps.build.outputs.package_path }}
-        asset_name: ${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}
+        asset_name: ${{ steps.build.outputs.asset_name }}
         tag: ${{ github.ref_name }}
         overwrite: true
     - name: Setup tmate session
