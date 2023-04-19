@@ -40,6 +40,7 @@ jobs:
         if [[ $os_name == "Linux" ]]; then
           package_path=$deb_path
           asset_name=$deb_file
+          cmake --build build --config Release --target package -j8
         else
           package_path=$bin_path
           asset_name="${{ steps.build.outputs.package_name }}_${{ matrix.os }}_${{ github.ref_name }}"
@@ -48,7 +49,7 @@ jobs:
         echo "package_name=$bin_name" >> $GITHUB_OUTPUT
         echo "package_path=$package_path" >> $GITHUB_OUTPUT
         echo "commit_hash=$commit_hash" >> $GITHUB_OUTPUT
-        echo "asset_name=$commit_hash" >> $GITHUB_OUTPUT
+        echo "asset_name=$asset_name" >> $GITHUB_OUTPUT
     - name: Test
       run: |
         cmake --build build --config Release -j8
