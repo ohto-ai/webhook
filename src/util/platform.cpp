@@ -63,6 +63,20 @@ std::string PlatformHelper::getPlatform() const
 #endif
 }
 
+std::string PlatformHelper::getHomeDirectory() const
+{
+    // 获取用户主目录
+    std::string home_dir;
+#ifdef _WIN32
+    home_dir = getenv("USERPROFILE");
+#elif __linux__
+    home_dir = getenv("HOME");
+#elif __APPLE__
+    home_dir = getenv("HOME");
+#endif
+    return home_dir;
+}
+
 std::string PlatformHelper::getCpuInfo() const
 {
 #ifdef _WIN32

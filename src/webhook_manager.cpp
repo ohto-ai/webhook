@@ -283,7 +283,12 @@ void ohtoai::WebhookManager::fillEnv(inja::Environment& env, nlohmann::json & da
 }
 
 ohtoai::WebhookManager::WebhookManager(int argc, char **argv) {
-    std::filesystem::current_path(PlatformHelper::getInstance().getProgramDirectory());
+    auto program_path = std::filesystem::path(PlatformHelper::getInstance().getHomeDirectory()) / ".ohtoai" / VersionHelper::getInstance().AppName;
+    if (!std::filesystem::exists(program_path))
+    {
+        std::filesystem::create_directories(program_path);
+    }
+    std::filesystem::current_path(program_path);
     
     // todo: Handle argv
 
