@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 include(../cmake/add_git_version.cmake)
 project(ohtoai-webhook LANGUAGES CXX VERSION ${BUILD_VERSION_MAJOR}.${BUILD_VERSION_MINOR}.${BUILD_VERSION_PATCH})
-
 set(CMAKE_CXX_STANDARD 17)
 set(AUTHOR "OhtoAi")
 set(EMAIL "zhu.thatboy@outlook.com")
