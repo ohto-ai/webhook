@@ -42,10 +42,32 @@ cmake --build build --config Release --target webhook -j8
 ```
 
 ## Install
-To install, run
+
+You can add this source to `source.list`, and run this command `apt update` & `apt install ohtoai-webhook`.
+```bash
+echo "deb [trusted=yes] https://ohtoai.top/ubuntu/ ./" | sudo tee -a /etc/apt/sources.list > /dev/null 
+sudo apt update
+sudo apt install ohtoai-webhook
+```
+Sources:  
+```bash
+# My website
+deb [trusted=yes] https://ohtoai.top/ubuntu/ ./
+# GitHub
+deb [trusted=yes] https://github.com/Ohto-Ai-Dev/apt-repo/raw/main/ubuntu/ ./
+# PPA
+# WIP
+```
+
+Or you can use python script to download latest version on Linux.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Ohto-Ai/webhook/master/scripts/install.py | python -
 ```
+Or you can download binary release from [GitHub Release](https://github.com/Ohto-Ai/webhook/releases/latest).
+
+## Usage
+See config in `~/.ohtoai/ohtoai-webhook/hook.json`.
+It a simple webhook server.
 
 ## Sample
 hook.json
