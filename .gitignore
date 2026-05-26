@@ -8,3 +8,8 @@ CMakeSettings.json
 # cmake
 Makefile
 build/
+out/
+
+# Generated files
+scripts/env.sh
+debug.log

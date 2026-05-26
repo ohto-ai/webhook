@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 include(../cmake/add_git_version.cmake)
+include(../cmake/sanitizers.cmake)
 project(ohtoai-webhook LANGUAGES CXX VERSION ${BUILD_VERSION_MAJOR}.${BUILD_VERSION_MINOR}.${BUILD_VERSION_PATCH})
 set(CMAKE_CXX_STANDARD 17)
 set(AUTHOR "OhtoAi")
@@ -10,7 +11,7 @@ if(WIN32)
     set(BINARY_SUFFIX ".exe")
     set(RELEASE_DIR "Release/")
 elseif(APPLE)
-    set(BINARY_SUFFIX ".img")
+    set(BINARY_SUFFIX "")
     set(RELEASE_DIR "")
 else()
     set(BINARY_SUFFIX "")
@@ -26,16 +27,39 @@ configure_file(
     ${CMAKE_SOURCE_DIR}/scripts/env.sh
 )
 
-# if on windows, add define WIN32_LEAN_AND_MEAN and NOMINMAX
+# Windows-specific defines
 if (WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN)
     add_definitions(-DNOMINMAX)
 endif()
 
-# Add source files
+# Source files
 set(SOURCES
     main.cpp
-    webhook_manager.cpp
+    application.cpp
+    server_manager.cpp
+
+    config/config_manager.cpp
+
+    auth/auth_manager.cpp
+    auth/basic_auth.cpp
+    auth/hmac_auth.cpp
+
+    webhook/template_engine.cpp
+    webhook/hook_handler.cpp
+
+    server/http_server.cpp
+    server/rate_limiter.cpp
+    server/request_validator.cpp
+    server/cors_middleware.cpp
+    server/health_endpoint.cpp
+
+    command/command_runner.cpp
+
+    logging/logging_manager.cpp
+
+    metrics/metrics_collector.cpp
+
     util/platform.cpp
 )
 
@@ -48,11 +72,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
 endif()
 target_compile_options(${PROJECT_NAME}
-	PRIVATE
-	$<$<CXX_COMPILER_ID:MSVC>:/bigobj>
-	$<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>) 
+    PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>)
 
-# Add include directories
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
 

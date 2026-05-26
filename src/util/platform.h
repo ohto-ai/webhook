@@ -1,21 +1,17 @@
 #pragma once
-#ifndef _WEBHOOK_PLATFORM_H_
-#define _WEBHOOK_PLATFORM_H_
 
 #include <future>
+#include <string>
+
+namespace ohtoai {
 
 class PlatformHelper
 {
-private:
-    PlatformHelper() = default;
-    PlatformHelper(const PlatformHelper &) = delete;
-    PlatformHelper &operator=(const PlatformHelper &) = delete;
-
 public:
     static PlatformHelper &getInstance();
 
-    std::string executeCommand(std::string cmd) const;
-    std::shared_future<std::string> executeCommandAsync(std::string cmd) const;
+    std::string executeCommand(const std::string& cmd) const;
+    std::shared_future<std::string> executeCommandAsync(const std::string& cmd) const;
     std::string getPlatform() const;
     std::string getCpuInfo() const;
     int getTerminalWidth() const;
@@ -23,6 +19,17 @@ public:
     std::string getExecutablePath() const;
     std::string getProgramDirectory() const;
     std::string getHomeDirectory() const;
+
+private:
+    PlatformHelper() = default;
+    PlatformHelper(const PlatformHelper &) = delete;
+    PlatformHelper &operator=(const PlatformHelper &) = delete;
+
+    template<typename... Args>
+    std::string resolvePath(Args&&... args) const;
 };
 
-#endif // !_WEBHOOK_PLATFORM_H_
+} // namespace ohtoai
+
+// Backward compatibility
+using PlatformHelper = ohtoai::PlatformHelper;

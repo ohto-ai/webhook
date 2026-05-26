@@ -1,5 +1,7 @@
 #include "platform.h"
 #include <sstream>
+#include <filesystem>
+
 #if defined(_WIN32)
 #define popen _popen
 #define pclose _pclose
@@ -15,7 +17,7 @@
 #include <mach-o/dyld.h>
 #endif
 
-#include <filesystem>
+namespace ohtoai {
 
 PlatformHelper &PlatformHelper::getInstance()
 {
@@ -23,35 +25,29 @@ PlatformHelper &PlatformHelper::getInstance()
     return instance;
 }
 
-std::string PlatformHelper::executeCommand(std::string cmd) const
+std::string PlatformHelper::executeCommand(const std::string& cmd) const
 {
     auto f = popen(cmd.c_str(), "r");
     std::stringstream display;
     if (f != nullptr)
     {
-        char buf_ps[1024];
-        while (fgets(buf_ps, sizeof(buf_ps), f) != nullptr)
-            display << buf_ps;
+        char buf[1024];
+        while (fgets(buf, sizeof(buf), f) != nullptr)
+            display << buf;
         pclose(f);
     }
     return display.str();
 }
 
-std::shared_future<std::string> PlatformHelper::executeCommandAsync(std::string cmd) const
+std::shared_future<std::string> PlatformHelper::executeCommandAsync(const std::string& cmd) const
 {
-    auto shared_future = std::async(std::launch::async, [this, cmd]()
-                                    { return executeCommand(cmd); })
-                             .share();
-    // Detach the shared_future to avoid blocking the main thread
-    std::thread([shared_future]
-                { shared_future.wait(); })
-        .detach();
-    return shared_future;
+    return std::async(std::launch::async, [this, cmd]()
+                      { return executeCommand(cmd); })
+        .share();
 }
 
 std::string PlatformHelper::getPlatform() const
 {
-// 获取运行平台
 #ifdef _WIN32
     return "Windows";
 #elif __linux__
@@ -65,7 +61,6 @@ std::string PlatformHelper::getPlatform() const
 
 std::string PlatformHelper::getHomeDirectory() const
 {
-    // 获取用户主目录
     std::string home_dir;
 #ifdef _WIN32
     home_dir = getenv("USERPROFILE");
@@ -80,7 +75,6 @@ std::string PlatformHelper::getHomeDirectory() const
 std::string PlatformHelper::getCpuInfo() const
 {
 #ifdef _WIN32
-    // Windows implementation
     SYSTEM_INFO sysinfo;
     GetNativeSystemInfo(&sysinfo);
 
@@ -107,15 +101,11 @@ std::string PlatformHelper::getCpuInfo() const
             oss << "UNKNOWN";
     }
 
-    oss << " " << sysinfo.dwNumberOfProcessors << " processors " << " @" << (sysinfo.dwProcessorType >> 16)
-        << "." << (sysinfo.dwProcessorType & 0xFFFF) << "GHz";
+    oss << " " << sysinfo.dwNumberOfProcessors << " processors";
     return oss.str();
 #elif __linux__
-    // Linux implementation
     return executeCommand("cat /proc/cpuinfo | grep 'model name' | cut -d: -f2 | sed 's/^ //g' | uniq");
 #elif __APPLE__
-    // MacOS implementation
-    // Get CPU brand string
     size_t size = 128;
     char cpu_brand[128]{};
     sysctlbyname("machdep.cpu.brand_string", &cpu_brand, &size, NULL, 0);
@@ -149,66 +139,51 @@ int PlatformHelper::getTerminalHeight() const
 #endif
 }
 
-std::string PlatformHelper::getExecutablePath() const {
-    std::string executablePath;
-
-    #ifdef __linux__
-        char buf[PATH_MAX];
-        ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
-        if (len != -1) {
-            buf[len] = '\0';
-            executablePath = std::filesystem::canonical(buf).string();
+template<typename T>
+static std::string resolveExecutablePath(T path_func)
+{
+    std::string result;
+#ifdef __linux__
+    char buf[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
+    if (len != -1) {
+        buf[len] = '\0';
+        result = path_func(buf);
+    }
+#elif defined(_WIN32)
+    HMODULE hModule = GetModuleHandle(nullptr);
+    if (hModule != nullptr) {
+        char buf[MAX_PATH];
+        DWORD len = GetModuleFileName(hModule, buf, MAX_PATH);
+        if (len > 0) {
+            result = path_func(buf);
         }
-    #elif defined(_WIN32)
-        HMODULE hModule = GetModuleHandle(nullptr);
-        if (hModule != nullptr) {
-            char buf[MAX_PATH];
-            DWORD len = GetModuleFileName(hModule, buf, MAX_PATH);
-            if (len > 0) {
-                executablePath = std::filesystem::canonical(buf).string();
-            }
-        }
-    #elif defined(__APPLE__)
-        char buf[PATH_MAX];
-        uint32_t bufsize = sizeof(buf);
-        if (_NSGetExecutablePath(buf, &bufsize) == 0) {
-            executablePath = std::filesystem::canonical(buf).string();
-        }
-    #endif
-
-    return executablePath;
+    }
+#elif defined(__APPLE__)
+    char buf[PATH_MAX];
+    uint32_t bufsize = sizeof(buf);
+    if (_NSGetExecutablePath(buf, &bufsize) == 0) {
+        result = path_func(buf);
+    }
+#endif
+    return result;
 }
 
-std::string PlatformHelper::getProgramDirectory() const {
-    std::string executablePath = std::filesystem::current_path().string();
-
-    #ifdef __linux__
-        char buf[PATH_MAX];
-        ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf));
-        if (len != -1) {
-            buf[len] = '\0';
-            executablePath = std::filesystem::canonical(buf).parent_path().string();
-        }
-    #elif defined(_WIN32)
-        HMODULE hModule = GetModuleHandle(nullptr);
-        if (hModule != nullptr) {
-            char buf[MAX_PATH];
-            DWORD len = GetModuleFileName(hModule, buf, MAX_PATH);
-            if (len > 0) {
-                executablePath = std::filesystem::canonical(buf).parent_path().string();
-            }
-        }
-    #elif defined(__APPLE__)
-        char buf[PATH_MAX];
-        uint32_t bufsize = sizeof(buf);
-        if (_NSGetExecutablePath(buf, &bufsize) == 0) {
-            executablePath = std::filesystem::canonical(buf).parent_path().string();
-        }
-    #endif
-
-    return executablePath;
+std::string PlatformHelper::getExecutablePath() const
+{
+    return resolveExecutablePath([](const char* buf) {
+        return std::filesystem::canonical(buf).string();
+    });
 }
 
+std::string PlatformHelper::getProgramDirectory() const
+{
+    return resolveExecutablePath([](const char* buf) {
+        return std::filesystem::canonical(buf).parent_path().string();
+    });
+}
+
+} // namespace ohtoai
 
 #ifdef _WIN32
 #undef popen

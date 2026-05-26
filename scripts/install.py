@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# DEPRECATED: Use install.sh instead. This script is kept for legacy compatibility.
+#
 import requests
 import platform
 
