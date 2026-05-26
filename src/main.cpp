@@ -1,26 +1,7 @@
-#include "webhook_manager.h"
+#include "application.h"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    while(true) {
-        ohtoai::WebhookManager a(argc, argv);
-        try
-        {
-            switch(a.exec())
-            {
-                case ohtoai::Finish:
-                    return 0;
-                case ohtoai::Terminate:
-                    return -1;
-                case ohtoai::Reload:
-                default:
-                    break;
-            }
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-            return -1;
-        }
-    }
+    ohtoai::Application app(argc, argv);
+    return static_cast<int>(app.run());
 }
