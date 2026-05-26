@@ -34,7 +34,7 @@ TEST_CASE("Integration-Auth: authenticated request with valid credentials", "[in
 
     httplib::Request req;
     req.path = "/api/test";
-    std::string creds = base64::encode("admin:secret");
+    std::string creds = base64::encode(std::string("admin:secret"));
     req.headers.emplace("Authorization", "Basic " + creds);
     httplib::Response res;
 
@@ -72,7 +72,7 @@ TEST_CASE("Integration-Auth: request with invalid credentials returns 401", "[in
 
     httplib::Request req;
     req.path = "/api/test";
-    std::string creds = base64::encode("admin:wrongpassword");
+    std::string creds = base64::encode(std::string("admin:wrongpassword"));
     req.headers.emplace("Authorization", "Basic " + creds);
     httplib::Response res;
 
@@ -113,6 +113,4 @@ TEST_CASE("Integration-Auth: X-Real-IP header sets client address", "[integratio
 
     auto result = manager.authenticate(req, res);
     REQUIRE(result == httplib::Server::HandlerResponse::Unhandled);
-    // The const_cast in auth_manager sets the client IP from X-Real-IP
-    // We verify this didn't crash and returned normally
 }

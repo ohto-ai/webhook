@@ -22,7 +22,7 @@ enum class ExitReason { Finish, Reload, Terminate };
 
 class ServerManager {
 public:
-    ServerManager(const ConfigManager& config_manager);
+    ServerManager(ConfigManager& config_manager);
     ~ServerManager();
 
     ExitReason start();
@@ -37,7 +37,7 @@ private:
     httplib::Server::HandlerResponse preRoutingChain(const httplib::Request& req,
                                                        httplib::Response& res);
 
-    const ConfigManager& config_manager_;
+    ConfigManager& config_manager_;
     HttpServer http_server_;
     TemplateEngine template_engine_;
     MetricsCollector metrics_;

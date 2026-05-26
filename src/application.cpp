@@ -118,7 +118,6 @@ void Application::setupWorkingDirectory()
         std::filesystem::create_directories(program_path);
 
     std::filesystem::current_path(program_path);
-    program_dir_ = program_path;
 }
 
 void Application::setupSignalHandlers()

@@ -3,7 +3,12 @@
 #include <spdlog/spdlog.h>
 #include <cppcodec/hex_default_lower.hpp>
 
+#if __has_include(<openssl/hmac.h>)
 #include <openssl/hmac.h>
+#define OHTOAI_HMAC_AVAILABLE 1
+#else
+#define OHTOAI_HMAC_AVAILABLE 0
+#endif
 
 namespace ohtoai {
 
@@ -18,7 +23,11 @@ bool HmacAuthHandler::verify(const std::string& signature_header,
     if (secret_.empty() || signature_header.empty())
         return false;
 
-    // Expect format: sha256=<hex-encoded-hmac>
+#if !OHTOAI_HMAC_AVAILABLE
+    spdlog::warn("HMAC verification requested but OpenSSL is not available");
+    return false;
+#endif
+
     std::string prefix = "sha256=";
     if (signature_header.size() < prefix.size() ||
         signature_header.substr(0, prefix.size()) != prefix)
@@ -37,6 +46,7 @@ bool HmacAuthHandler::verify(const std::string& signature_header,
     return constantTimeEquals(computed, expected);
 }
 
+#if OHTOAI_HMAC_AVAILABLE
 std::string HmacAuthHandler::computeHmacSha256(const std::string& data, const std::string& key)
 {
     unsigned char result[EVP_MAX_MD_SIZE];
@@ -49,6 +59,12 @@ std::string HmacAuthHandler::computeHmacSha256(const std::string& data, const st
 
     return hex::encode(std::string(reinterpret_cast<char*>(result), result_len));
 }
+#else
+std::string HmacAuthHandler::computeHmacSha256(const std::string&, const std::string&)
+{
+    return {};
+}
+#endif
 
 bool HmacAuthHandler::constantTimeEquals(const std::string& a, const std::string& b)
 {

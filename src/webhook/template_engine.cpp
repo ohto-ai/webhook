@@ -44,6 +44,7 @@ nlohmann::json TemplateEngine::createRenderData(const std::string& hook_name,
 void TemplateEngine::addCommandOutput(nlohmann::json& data, const std::string& output) const
 {
     using nlohmann::literals::operator"" _json_pointer;
+    data["command_output"] = output;
     data["/command/output"_json_pointer] = output;
     data["/command/output_html"_json_pointer] = escapeHtml(output);
 }

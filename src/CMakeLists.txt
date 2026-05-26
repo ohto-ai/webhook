@@ -33,9 +33,8 @@ if (WIN32)
     add_definitions(-DNOMINMAX)
 endif()
 
-# Source files
-set(SOURCES
-    main.cpp
+# Library sources (everything except main.cpp)
+set(LIB_SOURCES
     application.cpp
     server_manager.cpp
 
@@ -63,23 +62,25 @@ set(SOURCES
     util/platform.cpp
 )
 
-# Build the executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+# Static library for sharing between executable and tests
+add_library(${PROJECT_NAME}-lib STATIC ${LIB_SOURCES})
+add_library(ohtoai::webhook ALIAS ${PROJECT_NAME}-lib)
+
+target_include_directories(${PROJECT_NAME}-lib
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ../inc
+    PUBLIC ${PROJECT_BINARY_DIR}/generated/inc
+)
 
 # Check and add bigobj option
 if(CMAKE_COMPILER_IS_GNUCXX)
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
 endif()
-target_compile_options(${PROJECT_NAME}
+target_compile_options(${PROJECT_NAME}-lib
     PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
+    $<$<CXX_COMPILER_ID:MSVC>:/bigobj /FS>
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>)
-
-# Include directories
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/generated/inc)
 
 # Link thread and ssl lib
 if (APPLE)
@@ -87,12 +88,16 @@ if (APPLE)
 endif()
 find_package(Threads REQUIRED)
 find_package(OpenSSL QUIET)
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_NAME}-lib PUBLIC Threads::Threads)
 if (UNIX)
-    target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(${PROJECT_NAME}-lib PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 elseif(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+    target_link_libraries(${PROJECT_NAME}-lib PUBLIC ws2_32)
 endif()
+
+# Main executable
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}-lib)
 
 if (UNIX AND NOT APPLE)
     include(../cmake/ubuntu_package.cmake)

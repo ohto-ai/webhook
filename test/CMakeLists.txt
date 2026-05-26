@@ -5,21 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(${CMAKE_SOURCE_DIR}/src/generated/inc)
-
-find_package(Threads REQUIRED)
-find_package(OpenSSL QUIET)
+include_directories(${CMAKE_SOURCE_DIR}/build/src/generated/inc)
 
 add_definitions(-DCATCH_CONFIG_MAIN)
 
 function(add_webhook_test TEST_NAME TEST_FILE)
     add_executable(${TEST_NAME} ${TEST_FILE})
-    target_link_libraries(${TEST_NAME} PRIVATE Threads::Threads)
-    if(UNIX)
-        target_link_libraries(${TEST_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-    elseif(WIN32)
-        target_link_libraries(${TEST_NAME} PRIVATE ws2_32)
-    endif()
+    target_link_libraries(${TEST_NAME} PRIVATE ohtoai-webhook-lib)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 endfunction()
 

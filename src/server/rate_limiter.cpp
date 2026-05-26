@@ -4,7 +4,7 @@ namespace ohtoai {
 
 RateLimiter::RateLimiter(bool enabled, size_t max_requests, std::chrono::seconds window)
     : enabled_(enabled)
-    , max_tokens_(static_cast<double>(max_requests))
+    , max_tokens_(max_requests)
     , window_(window)
 {
 }
@@ -30,14 +30,14 @@ bool RateLimiter::allow(const std::string& client_ip)
 
     // Initialize bucket on first request
     if (bucket.tokens == 0.0 && bucket.last_refill == std::chrono::steady_clock::time_point{}) {
-        bucket.tokens = max_tokens_;
+        bucket.tokens = static_cast<double>(max_tokens_);
         bucket.last_refill = now;
     }
 
     // Refill tokens based on elapsed time
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - bucket.last_refill).count();
     double refill = elapsed * refillRate() / 1000.0;
-    bucket.tokens = std::min(max_tokens_, bucket.tokens + refill);
+    bucket.tokens = std::min(static_cast<double>(max_tokens_), bucket.tokens + refill);
     bucket.last_refill = now;
 
     if (bucket.tokens >= 1.0) {

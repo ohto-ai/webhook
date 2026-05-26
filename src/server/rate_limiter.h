@@ -26,7 +26,7 @@ private:
     double refillRate() const;
 
     bool enabled_ = false;
-    size_t max_tokens_ = 100;
+    double max_tokens_ = 100.0;
     std::chrono::seconds window_{60};
     mutable std::mutex mutex_;
     mutable std::unordered_map<std::string, TokenBucket> buckets_;

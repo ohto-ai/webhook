@@ -2,6 +2,7 @@
 #include <webhook/template_engine.h>
 #include <nlohmann/json.hpp>
 
+using namespace nlohmann::literals;
 using ohtoai::TemplateEngine;
 
 TEST_CASE("TemplateEngine: basic rendering", "[template]")
@@ -57,10 +58,13 @@ TEST_CASE("TemplateEngine: HTML escaping", "[template]")
     nlohmann::json data;
     engine.addCommandOutput(data, "<script>alert('xss')</script>");
 
-    REQUIRE(data.contains("/command/output_html"));
-    std::string escaped = data["/command/output_html"];
+    REQUIRE(data.contains("/command/output_html"_json_pointer));
+    std::string escaped = data["/command/output_html"_json_pointer];
     REQUIRE(escaped.find("<script>") == std::string::npos);
     REQUIRE(escaped.find("&lt;script&gt;") != std::string::npos);
+
+    // Backward compat: command_output should exist at root level
+    REQUIRE(data.contains("command_output"));
 }
 
 TEST_CASE("TemplateEngine: create render data", "[template]")
@@ -68,7 +72,7 @@ TEST_CASE("TemplateEngine: create render data", "[template]")
     TemplateEngine engine;
 
     nlohmann::json basic;
-    basic["/context/app"] = "test-app";
+    basic["/context/app"_json_pointer] = "test-app";
     engine.setBasicData(basic);
 
     httplib::Request req;
@@ -81,12 +85,12 @@ TEST_CASE("TemplateEngine: create render data", "[template]")
 
     auto data = engine.createRenderData("my-hook", "echo test", req);
 
-    REQUIRE(data["/request/method"] == "GET");
-    REQUIRE(data["/request/path"] == "/api/test");
-    REQUIRE(data["/request/remote_addr"] == "192.168.1.1");
-    REQUIRE(data["/request/body"] == "request body");
-    REQUIRE(data["/context/name"] == "my-hook");
-    REQUIRE(data["/context/command"] == "echo test");
+    REQUIRE(data["/request/method"_json_pointer] == "GET");
+    REQUIRE(data["/request/path"_json_pointer] == "/api/test");
+    REQUIRE(data["/request/remote_addr"_json_pointer] == "192.168.1.1");
+    REQUIRE(data["/request/body"_json_pointer] == "request body");
+    REQUIRE(data["/context/name"_json_pointer] == "my-hook");
+    REQUIRE(data["/context/command"_json_pointer] == "echo test");
 }
 
 TEST_CASE("TemplateEngine: failing render on invalid template", "[template]")

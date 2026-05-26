@@ -10,7 +10,7 @@
 
 namespace ohtoai {
 
-ServerManager::ServerManager(const ConfigManager& config_manager)
+ServerManager::ServerManager(ConfigManager& config_manager)
     : config_manager_(config_manager)
     , health_endpoint_(metrics_)
     , hook_handler_(template_engine_)
